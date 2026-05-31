@@ -1,26 +1,57 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <body>
+<div th:fragment="sidebar"
+     style="width:220px;background:#0f1729;min-height:calc(100vh - 56px);padding:20px 12px;flex-shrink:0;">
 
-<div
-        th:fragment="sidebar"
-        class="list-group">
+    <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:10px;padding:0 12px;">
+        Principal
+    </div>
 
-    <a
-            th:href="@{/}"
-            class="list-group-item list-group-item-action">
-        Dashboard
+    <a th:href="@{/admin/dashboard}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:3px;">
+        📊 Dashboard
+    </a>
+    <a th:href="@{/admin/activite}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:3px;">
+        📡 Activité
+    </a>
+    <a th:href="@{/admin/demandes}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:3px;">
+        📨 Demandes
+    </a>
+    <a th:href="@{/admin/users}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:16px;">
+        👥 Utilisateurs
     </a>
 
-    <a
-            th:href="@{/lignes}"
-            class="list-group-item list-group-item-action">
-        Lignes
+    <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:10px;padding:0 12px;">
+        Transport urbain
+    </div>
+    <a th:href="@{/lignes}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:3px;">
+        🛣 Lignes
+    </a>
+    <a th:href="@{/arrets}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:3px;">
+        📍 Arrêts
+    </a>
+    <a th:href="@{/vehicules}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:3px;">
+        🚌 Véhicules
+    </a>
+    <a th:href="@{/trajets}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:16px;">
+        🕐 Trajets
     </a>
 
+    <div style="font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:10px;padding:0 12px;">
+        Transport interurbain
+    </div>
+    <a th:href="@{/admin/interurbain}"
+       style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#8896b3;font-size:13px;text-decoration:none;margin-bottom:3px;">
+        🚍 Lignes interurbaines
+    </a>
 </div>
-
 </body>
-
 </html>

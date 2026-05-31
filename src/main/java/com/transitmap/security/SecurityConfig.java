@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .requestMatchers("/map", "/map/**", "/api/**", "/voyageur/**").hasRole("VOYAGEUR")
                 .requestMatchers("/interurbain/**").hasAnyRole("VOYAGEUR","ADMIN","AGENT")
                 .requestMatchers("/admin/interurbain/**").hasRole("ADMIN")
+                .requestMatchers("/interurbain/**").hasAnyRole("VOYAGEUR","ADMIN","AGENT")
+                .requestMatchers("/admin/interurbain/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
