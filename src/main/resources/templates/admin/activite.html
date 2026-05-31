@@ -46,7 +46,7 @@
         </div>
         <div class="mini-stat">
             <div class="num" style="color:#7F77DD;"
-                 th:text="${demandes.stream().filter(d -> 'EN_ATTENTE'.equals(d.statut)).count()}">0</div>
+                 th:text="${demandesEnAttente}">0</div>
             <div class="lbl">Demandes en attente</div>
         </div>
     </div>

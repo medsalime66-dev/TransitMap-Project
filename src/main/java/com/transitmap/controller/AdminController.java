@@ -64,11 +64,17 @@ public class AdminController {
 
     @GetMapping("/activite")
     public String activite(Model model) {
-        model.addAttribute("demandes", agentRequestService.findAll());
-        model.addAttribute("trajetsAujourdhui",
-                trajetRepository.findByDateTrajet(LocalDate.now()));
+        var demandes = agentRequestService.findAll();
+        var trajetsAujourdhui = trajetRepository.findByDateTrajet(LocalDate.now());
+        
+        model.addAttribute("demandes", demandes);
+        model.addAttribute("trajetsAujourdhui", trajetsAujourdhui);
         model.addAttribute("totalLignes", ligneRepository.count());
         model.addAttribute("totalVehicules", vehiculeRepository.count());
+        model.addAttribute("demandesEnAttente",       
+                demandes.stream()
+                        .filter(d -> "EN_ATTENTE".equals(d.getStatut()))
+                        .count());
         return "admin/activite";
     }
 }

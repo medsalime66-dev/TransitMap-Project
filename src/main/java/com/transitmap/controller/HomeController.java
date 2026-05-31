@@ -10,7 +10,8 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || authentication.getPrincipal().equals("anonymousUser")) {
             return "redirect:/login";
         }
         if (authentication.getAuthorities().contains(
@@ -22,5 +23,14 @@ public class HomeController {
             return "redirect:/agent/dashboard";
         }
         return "redirect:/map";
+    }
+
+    @GetMapping("/login")
+    public String login(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()
+                && !authentication.getPrincipal().equals("anonymousUser")) {
+            return "redirect:/";
+        }
+        return "login";
     }
 }

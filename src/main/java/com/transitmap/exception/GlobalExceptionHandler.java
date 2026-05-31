@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -15,10 +16,10 @@ public class GlobalExceptionHandler {
         return mav;
     }
 
-    @ExceptionHandler(Exception.class)
-    public ModelAndView handleGeneral(Exception ex) {
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ModelAndView handleNoHandler(NoHandlerFoundException ex) {
         ModelAndView mav = new ModelAndView("404");
-        mav.setStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        mav.setStatus(HttpStatus.NOT_FOUND);
         return mav;
     }
 }

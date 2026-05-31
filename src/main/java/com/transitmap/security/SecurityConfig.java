@@ -22,15 +22,22 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                .requestMatchers("/login", "/logout").permitAll()
+                .requestMatchers(
+                    "/",
+                    "/login",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/webjars/**"
+                ).permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/agent/**").hasRole("AGENT")
-                .requestMatchers("/voyageur/**", "/map/**", "/api/**").hasRole("VOYAGEUR")
+                .requestMatchers("/map", "/map/**", "/api/**", "/voyageur/**").hasRole("VOYAGEUR")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
+                .loginProcessingUrl("/login")
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .successHandler(loginSuccessHandler)
@@ -40,6 +47,8 @@ public class SecurityConfig {
             .logout(logout -> logout
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/login?logout=true")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
                 .permitAll()
             )
             .userDetailsService(userDetailsService);
