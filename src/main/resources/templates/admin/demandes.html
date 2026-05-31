@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Demandes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body{background:#f0f2f5;}
+        .card-box{background:white;border:1px solid #e0e0e0;border-radius:10px;padding:20px;margin-top:20px;}
+        .badge-attente{background:#FAEEDA;color:#633806;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-approuve{background:#EAF3DE;color:#3B6D11;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-rejete{background:#FCEBEB;color:#A32D2D;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .btn-approuver{background:#EAF3DE;color:#3B6D11;border:1px solid #97C459;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
+        .btn-rejeter{background:#FCEBEB;color:#A32D2D;border:1px solid #F09595;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;}
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div class="container mt-4">
+    <h5 style="font-weight:600;margin-bottom:16px;">Demandes des Agents</h5>
+    <div class="card-box">
+        <div th:if="${#lists.isEmpty(demandes)}"
+             style="color:#888;font-size:13px;text-align:center;padding:30px 0;">
+            Aucune demande.
+        </div>
+        <table class="table table-borderless"
+               th:if="${!#lists.isEmpty(demandes)}">
+            <thead style="font-size:12px;color:#888;">
+                <tr>
+                    <th>Agent</th><th>Ligne</th><th>Numéro</th>
+                    <th>Description</th><th>Date</th><th>Statut</th><th>Action</th>
+                </tr>
+            </thead>
+            <tbody style="font-size:13px;">
+                <tr th:each="d : ${demandes}">
+                    <td th:text="${d.agentUsername}"></td>
+                    <td th:text="${d.nomLigne}"></td>
+                    <td th:text="${d.numeroLigne}"></td>
+                    <td style="color:#888;" th:text="${d.description ?: '—'}"></td>
+                    <td th:text="${#temporals.format(d.dateCreation,'dd/MM/yyyy')}"></td>
+                    <td>
+                        <span th:class="${d.statut=='EN_ATTENTE'}?'badge-attente':
+                                        (${d.statut=='APPROUVE'}?'badge-approuve':'badge-rejete')"
+                              th:text="${d.statut}"></span>
+                    </td>
+                    <td th:if="${d.statut == 'EN_ATTENTE'}">
+                        <form th:action="@{/admin/demandes/{id}/approuver(id=${d.id})}"
+                              method="post" style="display:inline;">
+                            <input type="hidden" name="commentaire" value="Approuvé">
+                            <button type="submit" class="btn-approuver">✓ Approuver</button>
+                        </form>
+                        <form th:action="@{/admin/demandes/{id}/rejeter(id=${d.id})}"
+                              method="post" style="display:inline;margin-left:4px;">
+                            <input type="hidden" name="commentaire" value="Rejeté">
+                            <button type="submit" class="btn-rejeter">✗ Rejeter</button>
+                        </form>
+                    </td>
+                    <td th:if="${d.statut != 'EN_ATTENTE'}"
+                        style="color:#888;font-size:12px;"
+                        th:text="${d.commentaireAdmin ?: '—'}">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

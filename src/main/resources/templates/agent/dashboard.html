@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Agent — Tableau de bord</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .stat-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-card .number { font-size: 32px; font-weight: 700; }
+        .stat-card .label { font-size: 13px; color: #888; margin-top: 4px; }
+        .card-box {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .badge-attente { background:#FAEEDA;color:#633806;padding:3px 10px;border-radius:20px;font-size:12px; }
+        .badge-approuve { background:#EAF3DE;color:#3B6D11;padding:3px 10px;border-radius:20px;font-size:12px; }
+        .badge-rejete { background:#FCEBEB;color:#A32D2D;padding:3px 10px;border-radius:20px;font-size:12px; }
+        .action-btn {
+            display:inline-block;background:#185FA5;color:white;
+            padding:8px 18px;border-radius:8px;font-size:13px;
+            text-decoration:none;margin-right:8px;
+        }
+        .action-btn.secondary {
+            background:white;color:#185FA5;
+            border:1px solid #185FA5;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div class="container mt-4">
+
+    <h5 class="mb-3" style="font-weight:600;">Tableau de bord Agent</h5>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-2">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="number" th:text="${total}">0</div>
+                <div class="label">Total demandes</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="number" style="color:#BA7517;" th:text="${enAttente}">0</div>
+                <div class="label">En attente</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="number" style="color:#3B6D11;" th:text="${approuve}">0</div>
+                <div class="label">Approuvées</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="number" style="color:#A32D2D;" th:text="${rejete}">0</div>
+                <div class="label">Rejetées</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="card-box">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px;">Actions rapides</div>
+        <a th:href="@{/agent/demandes/create}" class="action-btn">+ Nouvelle demande de ligne</a>
+        <a th:href="@{/agent/trajets/create}" class="action-btn secondary">+ Ajouter un trajet</a>
+        <a th:href="@{/agent/arrets/create}" class="action-btn secondary">+ Ajouter un arrêt</a>
+    </div>
+
+    <!-- Dernières demandes -->
+    <div class="card-box">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px;">Mes dernières demandes</div>
+        <div th:if="${#lists.isEmpty(demandes)}"
+             style="color:#888;font-size:13px;text-align:center;padding:20px 0;">
+            Aucune demande pour le moment.
+        </div>
+        <table class="table table-borderless" th:if="${!#lists.isEmpty(demandes)}">
+            <thead style="font-size:12px;color:#888;">
+                <tr>
+                    <th>Ligne</th><th>Numéro</th><th>Date</th><th>Statut</th>
+                </tr>
+            </thead>
+            <tbody style="font-size:13px;">
+                <tr th:each="d : ${demandes}">
+                    <td th:text="${d.nomLigne}"></td>
+                    <td th:text="${d.numeroLigne}"></td>
+                    <td th:text="${#temporals.format(d.dateCreation, 'dd/MM/yyyy')}"></td>
+                    <td>
+                        <span th:class="${d.statut == 'EN_ATTENTE'} ? 'badge-attente' :
+                                        (${d.statut == 'APPROUVE'} ? 'badge-approuve' : 'badge-rejete')"
+                              th:text="${d.statut}"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

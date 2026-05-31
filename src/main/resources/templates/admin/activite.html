@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Activité</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body{background:#f0f2f5;}
+        .card-box{background:white;border:1px solid #e0e0e0;border-radius:10px;padding:20px;margin-top:20px;}
+        .box-title{font-size:14px;font-weight:600;margin-bottom:14px;color:#1a1a2e;}
+        .stat-row{display:flex;gap:12px;margin-bottom:20px;}
+        .mini-stat{background:white;border:1px solid #e0e0e0;border-radius:10px;padding:16px 20px;flex:1;text-align:center;}
+        .mini-stat .num{font-size:28px;font-weight:700;}
+        .mini-stat .lbl{font-size:12px;color:#888;margin-top:3px;}
+        .badge-attente{background:#FAEEDA;color:#633806;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-approuve{background:#EAF3DE;color:#3B6D11;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-rejete{background:#FCEBEB;color:#A32D2D;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-active{background:#EAF3DE;color:#3B6D11;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-progress{background:#E6F1FB;color:#185FA5;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-inactive{background:#F1EFE8;color:#5F5E5A;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .activity-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0f0;}
+        .activity-item:last-child{border-bottom:none;}
+        .activity-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div class="container mt-4">
+
+    <h5 style="font-weight:600;margin-bottom:20px;">Activité du système</h5>
+
+    <!-- Stats rapides -->
+    <div class="stat-row">
+        <div class="mini-stat">
+            <div class="num" style="color:#185FA5;" th:text="${totalLignes}">0</div>
+            <div class="lbl">Lignes actives</div>
+        </div>
+        <div class="mini-stat">
+            <div class="num" style="color:#BA7517;" th:text="${totalVehicules}">0</div>
+            <div class="lbl">Véhicules</div>
+        </div>
+        <div class="mini-stat">
+            <div class="num" style="color:#3B6D11;"
+                 th:text="${trajetsAujourdhui.size()}">0</div>
+            <div class="lbl">Trajets aujourd'hui</div>
+        </div>
+        <div class="mini-stat">
+            <div class="num" style="color:#7F77DD;"
+                 th:text="${demandes.stream().filter(d -> 'EN_ATTENTE'.equals(d.statut)).count()}">0</div>
+            <div class="lbl">Demandes en attente</div>
+        </div>
+    </div>
+
+    <!-- Trajets du jour -->
+    <div class="card-box">
+        <div class="box-title">Trajets d'aujourd'hui</div>
+        <div th:if="${#lists.isEmpty(trajetsAujourdhui)}"
+             style="color:#888;font-size:13px;text-align:center;padding:20px 0;">
+            Aucun trajet aujourd'hui.
+        </div>
+        <div th:each="t : ${trajetsAujourdhui}" class="activity-item">
+            <div class="activity-icon" style="background:#E6F1FB;">🚌</div>
+            <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;"
+                     th:text="${t.ligne.nom}"></div>
+                <div style="font-size:12px;color:#888;"
+                     th:text="${t.heureDepart + ' → ' + t.heureArrivee}"></div>
+            </div>
+            <span th:class="${t.statut=='ACTIVE'}?'badge-active':
+                            (${t.statut=='EN_COURS'}?'badge-progress':'badge-inactive')"
+                  th:text="${t.statut}"></span>
+        </div>
+    </div>
+
+    <!-- Historique demandes -->
+    <div class="card-box">
+        <div class="box-title">Historique des demandes de lignes</div>
+        <div th:if="${#lists.isEmpty(demandes)}"
+             style="color:#888;font-size:13px;text-align:center;padding:20px 0;">
+            Aucune demande.
+        </div>
+        <div th:each="d : ${demandes}" class="activity-item">
+            <div class="activity-icon" style="background:#EEEDFE;">📋</div>
+            <div style="flex:1;">
+                <div style="font-size:13px;font-weight:500;"
+                     th:text="${d.agentUsername + ' — ' + d.nomLigne}"></div>
+                <div style="font-size:12px;color:#888;"
+                     th:text="${#temporals.format(d.dateCreation,'dd/MM/yyyy HH:mm')}"></div>
+            </div>
+            <span th:class="${d.statut=='EN_ATTENTE'}?'badge-attente':
+                            (${d.statut=='APPROUVE'}?'badge-approuve':'badge-rejete')"
+                  th:text="${d.statut}"></span>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
