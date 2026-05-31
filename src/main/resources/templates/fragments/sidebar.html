@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<div
+        th:fragment="sidebar"
+        class="list-group">
+
+    <a
+            th:href="@{/}"
+            class="list-group-item list-group-item-action">
+        Dashboard
+    </a>
+
+    <a
+            th:href="@{/lignes}"
+            class="list-group-item list-group-item-action">
+        Lignes
+    </a>
+
+</div>
+
+</body>
+
+</html>

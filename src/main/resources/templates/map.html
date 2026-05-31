@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Transit Map</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+#map{height:90vh;}
+</style>
+
+</head>
+<body>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+const map=L.map('map').setView([18.0735,-15.9582],13);
+
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+maxZoom:19
+}
+).addTo(map);
+
+fetch('/api/arrets')
+.then(r=>r.json())
+.then(data=>{
+
+data.forEach(a=>{
+
+L.marker([a.latitude,a.longitude])
+.addTo(map)
+.bindPopup(a.nom);
+
+});
+
+});
+
+fetch('/api/vehicules')
+.then(r=>r.json())
+.then(data=>{
+
+data.forEach(v=>{
+
+if(v.currentLatitude&&v.currentLongitude){
+
+L.circleMarker(
+[v.currentLatitude,v.currentLongitude]
+)
+.addTo(map)
+.bindPopup(v.matricule);
+
+}
+
+});
+
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Create Trajet</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+<form th:action="@{/trajets/create}" th:object="${trajet}" method="post">
+<input type="date" th:field="*{dateTrajet}" class="form-control mb-2">
+<input type="time" th:field="*{heureDepart}" class="form-control mb-2">
+<input type="time" th:field="*{heureArrivee}" class="form-control mb-2">
+<input th:field="*{statut}" class="form-control mb-2" placeholder="ACTIVE">
+<select th:field="*{ligneId}" class="form-select mb-3">
+<option th:each="l:${lignes}" th:value="${l.id}" th:text="${l.nom}"></option>
+</select>
+<button class="btn btn-success">Save</button>
+</form>
+</div>
+</body>
+</html>
