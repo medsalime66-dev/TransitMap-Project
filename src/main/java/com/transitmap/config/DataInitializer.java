@@ -21,7 +21,9 @@ public class DataInitializer implements CommandLineRunner {
     private final VehiculeRepository vehiculeRepository;
     private final TrajetRepository trajetRepository;
     private final PasswordEncoder passwordEncoder;
-
+    private final LigneInterurbaineRepository ligneInterurbaineRepository;
+    private final VilleEtapeRepository villeEtapeRepository;
+    private final HoraireInterurbaineRepository horaireInterurbaineRepository;
     @Override
     public void run(String... args) {
 
@@ -86,7 +88,83 @@ public class DataInitializer implements CommandLineRunner {
 
         // ===================== LIGNES =====================
         if (ligneRepository.count() > 0) return; // تجنب التكرار
+// ========= LIGNES INTERURBAINES =========
 
+        LigneInterurbaine nktNdb = ligneInterurbaineRepository.save(
+            LigneInterurbaine.builder()
+                .nom("Nouakchott — Nouadhibou")
+                .villeDepart("Nouakchott").villeArrivee("Nouadhibou")
+                .distanceKm(470.0).prixBase(3500.0)
+                .description("Ligne principale côtière")
+                .build());
+
+        LigneInterurbaine nktRosso = ligneInterurbaineRepository.save(
+            LigneInterurbaine.builder()
+                .nom("Nouakchott — Rosso")
+                .villeDepart("Nouakchott").villeArrivee("Rosso")
+                .distanceKm(200.0).prixBase(1500.0)
+                .description("Liaison vers le fleuve Sénégal")
+                .build());
+
+        LigneInterurbaine nktAtar = ligneInterurbaineRepository.save(
+            LigneInterurbaine.builder()
+                .nom("Nouakchott — Atar")
+                .villeDepart("Nouakchott").villeArrivee("Atar")
+                .distanceKm(450.0).prixBase(3000.0)
+                .description("Route de l'Adrar")
+                .build());
+
+        // Etapes NKT-NDB
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktNdb)
+            .nomVille("Nouakchott").latitude(18.0735).longitude(-15.9582)
+            .ordre(1).dureeDepuisDebut(0).build());
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktNdb)
+            .nomVille("Akjoujt").latitude(19.7455).longitude(-14.3847)
+            .ordre(2).dureeDepuisDebut(180).build());
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktNdb)
+            .nomVille("Nouadhibou").latitude(20.9310).longitude(-17.0347)
+            .ordre(3).dureeDepuisDebut(420).build());
+
+        // Horaires NKT-NDB
+        horaireInterurbaineRepository.save(HoraireInterurbain.builder().ligne(nktNdb)
+            .heureDepart(LocalTime.of(6,0)).heureArrivee(LocalTime.of(13,0))
+            .jours("QUOTIDIEN").prix(3500.0).actif(true).build());
+        horaireInterurbaineRepository.save(HoraireInterurbain.builder().ligne(nktNdb)
+            .heureDepart(LocalTime.of(20,0)).heureArrivee(LocalTime.of(3,0))
+            .jours("QUOTIDIEN").prix(3500.0).actif(true).build());
+
+        // Etapes NKT-Rosso
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktRosso)
+            .nomVille("Nouakchott").latitude(18.0735).longitude(-15.9582)
+            .ordre(1).dureeDepuisDebut(0).build());
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktRosso)
+            .nomVille("Boutilimit").latitude(17.5500).longitude(-14.6833)
+            .ordre(2).dureeDepuisDebut(90).build());
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktRosso)
+            .nomVille("Rosso").latitude(16.5133).longitude(-15.8050)
+            .ordre(3).dureeDepuisDebut(180).build());
+
+        horaireInterurbaineRepository.save(HoraireInterurbain.builder().ligne(nktRosso)
+            .heureDepart(LocalTime.of(7,0)).heureArrivee(LocalTime.of(10,0))
+            .jours("QUOTIDIEN").prix(1500.0).actif(true).build());
+        horaireInterurbaineRepository.save(HoraireInterurbain.builder().ligne(nktRosso)
+            .heureDepart(LocalTime.of(14,0)).heureArrivee(LocalTime.of(17,0))
+            .jours("QUOTIDIEN").prix(1500.0).actif(true).build());
+
+        // Etapes NKT-Atar
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktAtar)
+            .nomVille("Nouakchott").latitude(18.0735).longitude(-15.9582)
+            .ordre(1).dureeDepuisDebut(0).build());
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktAtar)
+            .nomVille("Akjoujt").latitude(19.7455).longitude(-14.3847)
+            .ordre(2).dureeDepuisDebut(150).build());
+        villeEtapeRepository.save(VilleEtape.builder().ligne(nktAtar)
+            .nomVille("Atar").latitude(20.5170).longitude(-13.0490)
+            .ordre(3).dureeDepuisDebut(390).build());
+
+        horaireInterurbaineRepository.save(HoraireInterurbain.builder().ligne(nktAtar)
+    .heureDepart(LocalTime.of(5,0)).heureArrivee(LocalTime.of(11,30))
+    .jours("LUNDI,MERCREDI,VENDREDI").prix(3000.0).actif(true).build());
         Ligne ligneNord = ligneRepository.save(Ligne.builder()
                 .numero("L01")
                 .nom("Ligne Nord")
