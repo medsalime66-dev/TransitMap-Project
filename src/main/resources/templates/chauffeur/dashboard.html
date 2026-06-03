@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chauffeur — Tableau de bord</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .content{flex:1;padding:28px;max-width:800px;margin:0 auto;width:100%;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:24px;}
+        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;
+              padding:20px;margin-bottom:16px;}
+        .card-title{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:14px;}
+        .profil-row{display:flex;align-items:center;gap:16px;}
+        .avatar{width:56px;height:56px;border-radius:50%;background:#185FA5;
+                display:flex;align-items:center;justify-content:center;
+                color:white;font-size:22px;font-weight:700;flex-shrink:0;}
+        .profil-info .nom{font-size:17px;font-weight:700;color:#1a1a2e;}
+        .profil-info .detail{font-size:13px;color:#888;margin-top:3px;}
+        .info-ligne{display:flex;align-items:center;gap:10px;
+                    padding:10px 0;border-bottom:1px solid #f5f5f5;}
+        .info-ligne:last-child{border-bottom:none;}
+        .info-label{font-size:12px;color:#888;width:140px;flex-shrink:0;}
+        .info-val{font-size:13px;color:#1a1a2e;font-weight:500;}
+        .vehicule-card{background:#0f1729;border-radius:12px;padding:20px;
+                       color:white;}
+        .vehicule-card .mat{font-size:22px;font-weight:700;
+                            letter-spacing:2px;margin-bottom:4px;}
+        .vehicule-card .marque{font-size:13px;color:#8896b3;}
+        .places{display:flex;align-items:center;gap:8px;margin-top:12px;}
+        .place-num{font-size:28px;font-weight:700;color:#1D9E75;}
+        .place-txt{font-size:13px;color:#8896b3;}
+        .btn-validation{display:block;background:#185FA5;color:white;
+                        padding:12px;border-radius:9px;text-align:center;
+                        text-decoration:none;font-size:15px;font-weight:600;
+                        margin-top:16px;}
+        .btn-validation:hover{background:#0C447C;color:white;}
+        .vide{text-align:center;padding:32px;color:#aaa;font-size:13px;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="content">
+
+        <div class="page-title">Mon tableau de bord</div>
+
+        <!-- Profil chauffeur -->
+        <div class="card" th:if="${chauffeur != null}">
+            <div class="card-title">Mon profil</div>
+            <div class="profil-row">
+                <div class="avatar"
+                     th:text="${chauffeur.nomComplet.substring(0,1)}">
+                </div>
+                <div class="profil-info">
+                    <div class="nom"
+                         th:text="${chauffeur.nomComplet}"></div>
+                    <div class="detail"
+                         th:text="${chauffeur.email}"></div>
+                </div>
+            </div>
+            <div style="margin-top:16px;">
+                <div class="info-ligne">
+                    <span class="info-label">Téléphone</span>
+                    <span class="info-val"
+                          th:text="${chauffeur.telephone}"></span>
+                </div>
+                <div class="info-ligne">
+                    <span class="info-label">N° de permis</span>
+                    <span class="info-val"
+                          style="font-family:monospace;"
+                          th:text="${chauffeur.numeroPermis}"></span>
+                </div>
+                <div class="info-ligne">
+                    <span class="info-label">Ligne assignée</span>
+                    <span class="info-val"
+                          th:if="${chauffeur.ligneNom != null}"
+                          th:text="${chauffeur.ligneNom}"></span>
+                    <span class="info-val" style="color:#aaa;"
+                          th:unless="${chauffeur.ligneNom != null}">
+                        Aucune ligne assignée
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pas de profil -->
+        <div class="card vide" th:unless="${chauffeur != null}">
+            Profil en cours de configuration par votre agent.
+        </div>
+
+        <!-- Validation des codes -->
+        <div class="card">
+            <div class="card-title">Validation des réservations</div>
+            <p style="font-size:13px;color:#888;margin-bottom:12px;">
+                Saisissez le code d'un voyageur pour valider sa réservation.
+            </p>
+            <a href="/chauffeur/validation" class="btn-validation">
+                🎫 Accéder à la validation
+            </a>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>
