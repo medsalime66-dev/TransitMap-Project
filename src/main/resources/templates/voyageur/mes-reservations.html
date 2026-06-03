@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes réservations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .content{flex:1;padding:28px;max-width:640px;margin:0 auto;width:100%;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;
+                    margin-bottom:24px;}
+        .resa-card{background:white;border:1px solid #e5e7eb;border-radius:12px;
+                   padding:16px 20px;margin-bottom:12px;
+                   display:flex;align-items:center;justify-content:space-between;
+                   text-decoration:none;color:inherit;
+                   transition:border-color 0.15s;}
+        .resa-card:hover{border-color:#185FA5;}
+        .resa-left .ligne{font-size:15px;font-weight:600;color:#1a1a2e;}
+        .resa-left .trajet{font-size:12px;color:#888;margin-top:3px;}
+        .resa-left .arrets{font-size:13px;color:#555;margin-top:4px;}
+        .statut{padding:4px 12px;border-radius:20px;font-size:12px;
+                font-weight:500;}
+        .s-confirme{background:#EAF3DE;color:#3B6D11;}
+        .s-attente{background:#FAEEDA;color:#633806;}
+        .s-utilise{background:#F1EFE8;color:#5F5E5A;}
+        .s-annule{background:#FCEBEB;color:#A32D2D;}
+        .vide{text-align:center;padding:56px 24px;color:#aaa;}
+        .vide-icon{font-size:48px;margin-bottom:12px;}
+        .vide-titre{font-size:16px;font-weight:600;
+                    color:#555;margin-bottom:6px;}
+        .vide-txt{font-size:13px;}
+        .btn-map{display:inline-block;margin-top:16px;background:#185FA5;
+                 color:white;padding:9px 24px;border-radius:8px;
+                 text-decoration:none;font-size:14px;font-weight:600;}
+        .code-tag{font-family:monospace;background:#f0f4f8;color:#185FA5;
+                  padding:2px 8px;border-radius:4px;font-size:12px;
+                  margin-top:4px;display:inline-block;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="content">
+
+        <div class="page-title">Mes réservations</div>
+
+        <!-- Vide -->
+        <div class="vide" th:if="${#lists.isEmpty(reservations)}">
+            <div class="vide-icon">🎫</div>
+            <div class="vide-titre">Aucune réservation</div>
+            <div class="vide-txt">
+                Vous n'avez pas encore effectué de réservation.
+            </div>
+            <a href="/map" class="btn-map">Explorer les lignes →</a>
+        </div>
+
+        <!-- Liste des réservations -->
+        <a th:each="r : ${reservations}"
+           th:href="@{/voyageur/reservations/{id}(id=${r.id})}"
+           class="resa-card">
+            <div class="resa-left">
+                <div class="ligne" th:text="${r.ligneNom}"></div>
+                <div class="trajet"
+                     th:text="${r.dateTrajet + ' · ' + r.heureDepart}">
+                </div>
+                <div class="arrets"
+                     th:text="${r.arretDepartNom +
+                                ' → ' + r.arretArriveeNom}">
+                </div>
+                <div th:if="${r.codeTexte != null}"
+                     class="code-tag"
+                     th:text="${r.codeTexte}"></div>
+            </div>
+            <div style="text-align:right;">
+                <span th:class="${r.statut.name()=='CONFIRME'}
+                    ?'statut s-confirme':
+                    (${r.statut.name()=='EN_ATTENTE'}
+                    ?'statut s-attente':
+                    (${r.statut.name()=='UTILISE'}
+                    ?'statut s-utilise':'statut s-annule'))"
+                      th:text="${r.statut}"></span>
+                <div style="font-size:12px;color:#aaa;margin-top:6px;">
+                    →
+                </div>
+            </div>
+        </a>
+
+    </div>
+</div>
+</body>
+</html>
