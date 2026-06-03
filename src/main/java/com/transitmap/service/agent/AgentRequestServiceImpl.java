@@ -1,4 +1,4 @@
-package com.transitmap.service.impl;
+package com.transitmap.service.agent;
 
 import com.transitmap.dto.AgentRequestDto;
 import com.transitmap.entity.DemandeInscription;
