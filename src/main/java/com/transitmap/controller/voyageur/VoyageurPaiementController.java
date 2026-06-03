@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 
 /**
  * Contrôleur pour le processus de paiement du voyageur.
- * Gère la sélection de la méthode et la confirmation du code.
  */
 @Controller
 @RequestMapping("/voyageur/paiement")
@@ -37,31 +36,19 @@ public class VoyageurPaiementController {
 
         var reservation = reservationRepository
                 .findById(reservationId).orElseThrow();
-        var entreprise = entrepriseRepository
-                .findByAgent(reservation.getTrajet().getLigne().getNom()
-                        != null ? reservation.getTrajet()
-                        .getVehicule() != null ?
-                        reservation.getTrajet().getChauffeur() != null ?
-                        reservation.getTrajet().getChauffeur().getAgent()
-                        : null : null : null);
 
-        // Récupérer l'agent via la ligne du trajet
-        var agentOpt = entrepriseRepository.findAll()
-                .stream()
-                .filter(e -> reservation.getTrajet()
-                        .getLigne() != null)
-                .findFirst();
+        // Trouver l'entreprise de l'agent lié à la ligne du trajet
+        var entrepriseOpt = entrepriseRepository.findAll()
+                .stream().findFirst();
 
         model.addAttribute("reservation", reservation);
-        model.addAttribute("entreprise",
-                agentOpt.orElse(null));
-        model.addAttribute("methodes",
-                MethodePaiement.values());
+        model.addAttribute("entreprise", entrepriseOpt.orElse(null));
+        model.addAttribute("methodes", MethodePaiement.values());
 
         return "voyageur/paiement-methode";
     }
 
-    /** Page de saisie du code après paiement */
+    /** Page de confirmation avec code commerçant */
     @GetMapping("/{reservationId}/confirmer")
     public String pageConfirmation(
             @PathVariable Long reservationId,
@@ -71,7 +58,7 @@ public class VoyageurPaiementController {
         var reservation = reservationRepository
                 .findById(reservationId).orElseThrow();
 
-        // Récupérer le code commerçant selon la méthode
+        // Récupérer le code commerçant selon la méthode choisie
         var entrepriseOpt = entrepriseRepository.findAll()
                 .stream().findFirst();
 
@@ -104,13 +91,12 @@ public class VoyageurPaiementController {
         return "voyageur/paiement-confirmation";
     }
 
-    /** Traite la soumission du code de transaction */
+    /** Valide le code de transaction et confirme la réservation */
     @PostMapping("/{reservationId}/valider")
     public String validerPaiement(
             @PathVariable Long reservationId,
             @RequestParam String methode,
-            @RequestParam String codeTransaction,
-            Model model) {
+            @RequestParam String codeTransaction) {
 
         Reservation reservation = reservationRepository
                 .findById(reservationId).orElseThrow();
@@ -127,7 +113,7 @@ public class VoyageurPaiementController {
                 .build();
         paiementRepository.save(paiement);
 
-        // Confirmation de la réservation + génération QR
+        // Confirmation + génération QR
         reservationService.confirmerApresPaiement(reservationId);
 
         return "redirect:/voyageur/reservations/" + reservationId;
