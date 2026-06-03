@@ -7,36 +7,119 @@
             align-items:center;justify-content:space-between;
             position:sticky;top:0;z-index:100;flex-shrink:0;">
 
-    <a th:href="@{/}" style="color:white;font-size:17px;font-weight:700;
-       text-decoration:none;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <!-- Logo -->
+    <a th:href="@{/}"
+       style="color:white;font-size:17px;font-weight:700;text-decoration:none;
+              display:flex;align-items:center;gap:10px;flex-shrink:0;">
         🚌 TransitMap
     </a>
 
     <div style="display:flex;align-items:center;gap:4px;">
 
+        <!-- VOYAGEUR -->
         <th:block sec:authorize="hasRole('VOYAGEUR')">
-            <a th:href="@{/map}" style="color:#a0aec0;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">🗺 Carte</a>
-            <a th:href="@{/interurbain/search}" style="color:#a0aec0;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">🔍 Voyages</a>
+            <a th:href="@{/map}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                🗺 Carte
+            </a>
+            <a th:href="@{/interurbain/search}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                🔍 Voyages
+            </a>
+            <a th:href="@{/voyageur/reservations}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                🎫 Mes réservations
+            </a>
         </th:block>
 
+        <!-- AGENT -->
         <th:block sec:authorize="hasRole('AGENT')">
-            <a th:href="@{/agent/dashboard}" style="color:#a0aec0;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">📋 Tableau de bord</a>
-            <a th:href="@{/agent/demandes}" style="color:#a0aec0;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">📨 Demandes</a>
+            <a th:href="@{/agent/dashboard}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                📋 Tableau de bord
+            </a>
+            <a th:href="@{/agent/chauffeurs}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                👤 Chauffeurs
+            </a>
+            <a th:href="@{/agent/vehicules}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                🚌 Véhicules
+            </a>
+            <a th:href="@{/lignes}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                🛣 Lignes
+            </a>
         </th:block>
 
+        <!-- ADMIN -->
         <th:block sec:authorize="hasRole('ADMIN')">
-            <a th:href="@{/admin/dashboard}" style="color:#a0aec0;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">📊 Dashboard</a>
-            <a th:href="@{/admin/activite}" style="color:#a0aec0;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">📡 Activité</a>
-            <a th:href="@{/admin/demandes}" style="color:#a0aec0;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">📨 Demandes</a>
-            <a th:href="@{/admin/interurbain}" style="color:#a0aec0;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">🚍 Interurbain</a>
+            <a th:href="@{/admin/dashboard}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                📊 Dashboard
+            </a>
+            <a th:href="@{/admin/demandes-inscription}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                📨 Inscriptions
+            </a>
+            <a th:href="@{/admin/activite}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                📡 Activité
+            </a>
+            <a th:href="@{/admin/interurbain}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                🚍 Interurbain
+            </a>
         </th:block>
 
+        <!-- CHAUFFEUR -->
+        <th:block sec:authorize="hasRole('CHAUFFEUR')">
+            <a th:href="@{/chauffeur/dashboard}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                🏠 Mon tableau de bord
+            </a>
+            <a th:href="@{/chauffeur/validation}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                🎫 Validation
+            </a>
+        </th:block>
+
+        <!-- Déconnexion -->
         <th:block sec:authorize="isAuthenticated()">
-            <a th:href="@{/logout}" style="background:#E24B4A;color:white;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-left:8px;">Déconnexion</a>
+            <a th:href="@{/logout}"
+               style="background:#E24B4A;color:white;padding:8px 18px;
+                      border-radius:8px;font-size:14px;font-weight:600;
+                      text-decoration:none;margin-left:8px;">
+                Déconnexion
+            </a>
         </th:block>
 
+        <!-- Connexion pour visiteurs -->
         <th:block sec:authorize="!isAuthenticated()">
-            <a th:href="@{/login}" style="background:#185FA5;color:white;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">Se connecter</a>
+            <a th:href="@{/inscription}"
+               style="color:#a0aec0;padding:8px 14px;border-radius:8px;
+                      font-size:14px;font-weight:500;text-decoration:none;">
+                Devenir agent
+            </a>
+            <a th:href="@{/login}"
+               style="background:#185FA5;color:white;padding:8px 18px;
+                      border-radius:8px;font-size:14px;font-weight:600;
+                      text-decoration:none;">
+                Se connecter
+            </a>
         </th:block>
 
     </div>
