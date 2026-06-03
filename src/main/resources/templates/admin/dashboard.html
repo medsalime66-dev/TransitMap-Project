@@ -2,35 +2,40 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>TransitMap — Dashboard</title>
+    <title>Admin — Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{font-family:sans-serif;background:#f5f7fa;}
-        .layout{display:flex;min-height:100vh;flex-direction:column;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
         .main{display:flex;flex:1;}
-        .content{flex:1;padding:24px;}
-        .page-title{font-size:18px;font-weight:700;color:#1a1a2e;margin-bottom:20px;}
-        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
-        .stat{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:18px;}
-        .stat .n{font-size:32px;font-weight:700;margin-bottom:4px;}
+        .content{flex:1;padding:28px;overflow:auto;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:24px;}
+        .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+        .stat{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:18px;text-align:center;}
+        .stat .n{font-size:30px;font-weight:700;margin-bottom:4px;}
         .stat .l{font-size:12px;color:#888;}
-        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:16px;}
-        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-        .card-title{font-size:14px;font-weight:600;color:#1a1a2e;}
-        .btn-add{background:#185FA5;color:white;border:none;padding:7px 16px;border-radius:8px;font-size:13px;cursor:pointer;text-decoration:none;}
-        .tbl{width:100%;border-collapse:collapse;font-size:13px;}
-        .tbl th{text-align:left;padding:8px 12px;color:#888;font-weight:500;font-size:12px;border-bottom:1px solid #f0f0f0;}
-        .tbl td{padding:10px 12px;border-bottom:1px solid #f9f9f9;color:#333;}
-        .tbl tr:last-child td{border-bottom:none;}
+        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:18px;}
+        .card-title{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:16px;}
+        .activity-item{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid #f5f5f5;}
+        .activity-item:last-child{border-bottom:none;}
+        .activity-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
         .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;}
         .b-active{background:#EAF3DE;color:#3B6D11;}
         .b-cours{background:#E6F1FB;color:#185FA5;}
         .b-plan{background:#F1EFE8;color:#5F5E5A;}
         .b-wait{background:#FAEEDA;color:#633806;}
-        .shortcuts{display:flex;gap:10px;flex-wrap:wrap;}
-        .shortcut{padding:9px 18px;border-radius:9px;font-size:13px;text-decoration:none;font-weight:500;}
-        .sidebar-link-active{background:#1e3a5f!important;color:white!important;}
+        .b-appr{background:#EAF3DE;color:#3B6D11;}
+        .b-rej{background:#FCEBEB;color:#A32D2D;}
+        .empty{text-align:center;padding:24px;color:#aaa;font-size:13px;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;color:#a0aec0;font-size:14px;font-weight:500;text-decoration:none;margin-bottom:3px;white-space:nowrap;}
+        .sidebar-link:hover{background:rgba(255,255,255,0.08);color:white;}
+        .sidebar-section-label{font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin:0 0 8px 10px;white-space:nowrap;}
+        .sidebar-icon{font-size:17px;flex-shrink:0;width:22px;text-align:center;}
+        .sidebar-divider{height:1px;background:rgba(255,255,255,0.06);margin:14px 0;}
+        #sidebar.collapsed{width:60px;}
+        #sidebar.collapsed .sidebar-text,#sidebar.collapsed .sidebar-section-label{opacity:0;pointer-events:none;}
     </style>
 </head>
 <body>
@@ -39,8 +44,10 @@
     <div class="main">
         <div th:replace="~{fragments/sidebar :: sidebar}"></div>
         <div class="content">
+
             <div class="page-title">Tableau de bord</div>
 
+            <!-- Stats -->
             <div class="stats">
                 <div class="stat">
                     <div class="n" style="color:#185FA5;" th:text="${totalLignes}">0</div>
@@ -60,13 +67,14 @@
                 </div>
             </div>
 
+            <!-- Trajets du jour -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Trajets d'aujourd'hui</div>
-                    <span style="font-size:12px;color:#888;" th:text="${#temporals.format(#temporals.createNow(), 'dd MMM yyyy')}"></span>
+                    <span style="font-size:12px;color:#888;"
+                          th:text="${#temporals.format(#temporals.createNow(),'dd MMM yyyy')}"></span>
                 </div>
-                <div th:if="${#lists.isEmpty(trajetsAujourdhui)}"
-                     style="text-align:center;padding:30px;color:#aaa;font-size:13px;">
+                <div class="empty" th:if="${#lists.isEmpty(trajetsAujourdhui)}">
                     Aucun trajet aujourd'hui.
                 </div>
                 <table class="tbl" th:if="${!#lists.isEmpty(trajetsAujourdhui)}">
@@ -88,13 +96,13 @@
                 </table>
             </div>
 
+            <!-- Demandes en attente -->
             <div class="card">
                 <div class="card-header">
                     <div class="card-title">Demandes en attente</div>
-                    <a th:href="@{/admin/demandes}" style="font-size:13px;color:#185FA5;text-decoration:none;">Voir tout →</a>
+                    <a th:href="@{/admin/demandes}" class="link-blue">Voir tout →</a>
                 </div>
-                <div th:if="${#lists.isEmpty(demandesEnAttente)}"
-                     style="text-align:center;padding:20px;color:#aaa;font-size:13px;">
+                <div class="empty" th:if="${#lists.isEmpty(demandesEnAttente)}">
                     Aucune demande en attente.
                 </div>
                 <table class="tbl" th:if="${!#lists.isEmpty(demandesEnAttente)}">
@@ -106,23 +114,29 @@
                             <td th:text="${d.agentUsername}"></td>
                             <td th:text="${d.numeroLigne + ' — ' + d.nomLigne}"></td>
                             <td th:text="${#temporals.format(d.dateCreation,'dd/MM/yyyy')}"></td>
-                            <td><a th:href="@{/admin/demandes}" style="color:#185FA5;font-size:12px;">Traiter</a></td>
+                            <td>
+                                <a th:href="@{/admin/demandes}" class="link-blue">Traiter</a>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
+            <!-- Accès rapide -->
             <div class="card">
-                <div class="card-title" style="margin-bottom:14px;">Accès rapide</div>
+                <div class="card-header">
+                    <div class="card-title">Accès rapide</div>
+                </div>
                 <div class="shortcuts">
-                    <a th:href="@{/lignes}" class="shortcut" style="background:#E6F1FB;color:#0C447C;">🛣 Lignes</a>
-                    <a th:href="@{/arrets}" class="shortcut" style="background:#EAF3DE;color:#27500A;">📍 Arrêts</a>
-                    <a th:href="@{/vehicules}" class="shortcut" style="background:#FAEEDA;color:#633806;">🚌 Véhicules</a>
-                    <a th:href="@{/trajets}" class="shortcut" style="background:#EEEDFE;color:#26215C;">🕐 Trajets</a>
+                    <a th:href="@{/lignes}"           class="shortcut" style="background:#E6F1FB;color:#0C447C;">🛣 Lignes</a>
+                    <a th:href="@{/arrets}"           class="shortcut" style="background:#EAF3DE;color:#27500A;">📍 Arrêts</a>
+                    <a th:href="@{/vehicules}"        class="shortcut" style="background:#FAEEDA;color:#633806;">🚌 Véhicules</a>
+                    <a th:href="@{/trajets}"          class="shortcut" style="background:#EEEDFE;color:#26215C;">🕐 Trajets</a>
                     <a th:href="@{/admin/interurbain}" class="shortcut" style="background:#F1EFE8;color:#444441;">🚍 Interurbain</a>
-                    <a th:href="@{/admin/users}" class="shortcut" style="background:#FCEBEB;color:#501313;">👥 Utilisateurs</a>
+                    <a th:href="@{/admin/users}"      class="shortcut" style="background:#FCEBEB;color:#501313;">👥 Utilisateurs</a>
                 </div>
             </div>
+
         </div>
     </div>
 </div>

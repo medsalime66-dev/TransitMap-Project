@@ -9,6 +9,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * Gestionnaire de succès d'authentification.
+ * Redirige chaque utilisateur vers son tableau de bord selon son rôle.
+ */
 @Component
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
@@ -18,16 +22,20 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication)
             throws IOException {
 
-        if (authentication.getAuthorities().contains(
-                new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+        if (hasRole(authentication, "ROLE_ADMIN")) {
             response.sendRedirect("/admin/dashboard");
-
-        } else if (authentication.getAuthorities().contains(
-                new SimpleGrantedAuthority("ROLE_AGENT"))) {
+        } else if (hasRole(authentication, "ROLE_AGENT")) {
             response.sendRedirect("/agent/dashboard");
-
+        } else if (hasRole(authentication, "ROLE_CHAUFFEUR")) {
+            response.sendRedirect("/chauffeur/dashboard");
         } else {
             response.sendRedirect("/map");
         }
+    }
+
+    /** Vérifie si l'utilisateur possède un rôle donné */
+    private boolean hasRole(Authentication auth, String role) {
+        return auth.getAuthorities().contains(
+                new SimpleGrantedAuthority(role));
     }
 }

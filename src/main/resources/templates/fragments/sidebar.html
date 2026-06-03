@@ -6,133 +6,30 @@
             padding:20px 14px;flex-shrink:0;transition:width 0.25s ease;
             overflow:hidden;position:relative;">
 
-    <!-- زر Toggle -->
     <button onclick="toggleSidebar()"
             style="position:absolute;top:14px;right:12px;background:rgba(255,255,255,0.08);
                    border:none;color:#8896b3;width:28px;height:28px;border-radius:6px;
                    cursor:pointer;font-size:14px;display:flex;align-items:center;
-                   justify-content:center;" id="sidebar-toggle">
-        ◀
-    </button>
+                   justify-content:center;" id="sidebar-toggle">◀</button>
 
-    <!-- قسم Principal -->
     <div class="sidebar-section-label">Principal</div>
-
-    <a th:href="@{/admin/dashboard}" class="sidebar-link">
-        <span class="sidebar-icon">📊</span>
-        <span class="sidebar-text">Dashboard</span>
-    </a>
-    <a th:href="@{/admin/activite}" class="sidebar-link">
-        <span class="sidebar-icon">📡</span>
-        <span class="sidebar-text">Activité</span>
-    </a>
-    <a th:href="@{/admin/demandes}" class="sidebar-link">
-        <span class="sidebar-icon">📨</span>
-        <span class="sidebar-text">Demandes</span>
-    </a>
-    <a th:href="@{/admin/users}" class="sidebar-link">
-        <span class="sidebar-icon">👥</span>
-        <span class="sidebar-text">Utilisateurs</span>
-    </a>
+    <a th:href="@{/admin/dashboard}" class="sidebar-link"><span class="sidebar-icon">📊</span><span class="sidebar-text">Dashboard</span></a>
+    <a th:href="@{/admin/activite}" class="sidebar-link"><span class="sidebar-icon">📡</span><span class="sidebar-text">Activité</span></a>
+    <a th:href="@{/admin/demandes}" class="sidebar-link"><span class="sidebar-icon">📨</span><span class="sidebar-text">Demandes</span></a>
+    <a th:href="@{/admin/users}" class="sidebar-link"><span class="sidebar-icon">👥</span><span class="sidebar-text">Utilisateurs</span></a>
 
     <div class="sidebar-divider"></div>
     <div class="sidebar-section-label">Transport urbain</div>
-
-    <a th:href="@{/lignes}" class="sidebar-link">
-        <span class="sidebar-icon">🛣</span>
-        <span class="sidebar-text">Lignes</span>
-    </a>
-    <a th:href="@{/arrets}" class="sidebar-link">
-        <span class="sidebar-icon">📍</span>
-        <span class="sidebar-text">Arrêts</span>
-    </a>
-    <a th:href="@{/vehicules}" class="sidebar-link">
-        <span class="sidebar-icon">🚌</span>
-        <span class="sidebar-text">Véhicules</span>
-    </a>
-    <a th:href="@{/trajets}" class="sidebar-link">
-        <span class="sidebar-icon">🕐</span>
-        <span class="sidebar-text">Trajets</span>
-    </a>
+    <a th:href="@{/lignes}" class="sidebar-link"><span class="sidebar-icon">🛣</span><span class="sidebar-text">Lignes</span></a>
+    <a th:href="@{/arrets}" class="sidebar-link"><span class="sidebar-icon">📍</span><span class="sidebar-text">Arrêts</span></a>
+    <a th:href="@{/vehicules}" class="sidebar-link"><span class="sidebar-icon">🚌</span><span class="sidebar-text">Véhicules</span></a>
+    <a th:href="@{/trajets}" class="sidebar-link"><span class="sidebar-icon">🕐</span><span class="sidebar-text">Trajets</span></a>
 
     <div class="sidebar-divider"></div>
     <div class="sidebar-section-label">Transport interurbain</div>
-
-    <a th:href="@{/admin/interurbain}" class="sidebar-link">
-        <span class="sidebar-icon">🚍</span>
-        <span class="sidebar-text">Lignes interurbaines</span>
-    </a>
-
-    <a th:href="@{/map}" class="sidebar-link" style="margin-top:8px;">
-        <span class="sidebar-icon">🗺</span>
-        <span class="sidebar-text">Voir la carte</span>
-    </a>
+    <a th:href="@{/admin/interurbain}" class="sidebar-link"><span class="sidebar-icon">🚍</span><span class="sidebar-text">Lignes interurbaines</span></a>
+    <a th:href="@{/map}" class="sidebar-link" style="margin-top:8px;"><span class="sidebar-icon">🗺</span><span class="sidebar-text">Voir la carte</span></a>
 </div>
-
-<style>
-.sidebar-section-label {
-    font-size: 11px;
-    color: #4a5568;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    font-weight: 700;
-    margin: 0 0 8px 10px;
-    white-space: nowrap;
-    overflow: hidden;
-    transition: opacity 0.2s;
-}
-.sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border-radius: 9px;
-    color: #a0aec0;
-    font-size: 14px;
-    font-weight: 500;
-    text-decoration: none;
-    margin-bottom: 3px;
-    white-space: nowrap;
-    transition: background 0.15s, color 0.15s;
-    letter-spacing: 0.1px;
-}
-.sidebar-link:hover {
-    background: rgba(255,255,255,0.08);
-    color: white;
-}
-.sidebar-link.active {
-    background: #1e3a5f;
-    color: white;
-}
-.sidebar-icon {
-    font-size: 17px;
-    flex-shrink: 0;
-    width: 22px;
-    text-align: center;
-}
-.sidebar-text {
-    transition: opacity 0.2s;
-}
-.sidebar-divider {
-    height: 1px;
-    background: rgba(255,255,255,0.06);
-    margin: 14px 0;
-}
-
-/* Collapsed state */
-#sidebar.collapsed {
-    width: 60px;
-}
-#sidebar.collapsed .sidebar-text,
-#sidebar.collapsed .sidebar-section-label {
-    opacity: 0;
-    pointer-events: none;
-}
-#sidebar.collapsed #sidebar-toggle {
-    right: 50%;
-    transform: translateX(50%);
-}
-</style>
 
 <script>
 function toggleSidebar() {
@@ -140,10 +37,8 @@ function toggleSidebar() {
     const btn = document.getElementById('sidebar-toggle');
     sidebar.classList.toggle('collapsed');
     btn.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
-    localStorage.setItem('sidebar-collapsed',
-        sidebar.classList.contains('collapsed') ? '1' : '0');
+    localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
 }
-// استعادة الحالة السابقة
 document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem('sidebar-collapsed') === '1') {
         document.getElementById('sidebar').classList.add('collapsed');

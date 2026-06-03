@@ -1,7 +1,7 @@
 package com.transitmap.service.impl;
 
 import com.transitmap.dto.AgentRequestDto;
-import com.transitmap.entity.AgentRequest;
+import com.transitmap.entity.DemandeInscription;
 import com.transitmap.entity.User;
 import com.transitmap.exception.ResourceNotFoundException;
 import com.transitmap.repository.AgentRequestRepository;
@@ -24,7 +24,7 @@ public class AgentRequestServiceImpl implements AgentRequestService {
         User agent = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
 
-        AgentRequest request = AgentRequest.builder()
+        DemandeInscription request = DemandeInscription.builder()
                 .agent(agent)
                 .nomLigne(dto.getNomLigne())
                 .numeroLigne(dto.getNumeroLigne())
@@ -54,7 +54,7 @@ public class AgentRequestServiceImpl implements AgentRequestService {
 
     @Override
     public AgentRequestDto approuver(Long id, String commentaire) {
-        AgentRequest r = agentRequestRepository.findById(id)
+        DemandeInscription r = agentRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande introuvable"));
         r.setStatut("APPROUVE");
         r.setCommentaireAdmin(commentaire);
@@ -64,7 +64,7 @@ public class AgentRequestServiceImpl implements AgentRequestService {
 
     @Override
     public AgentRequestDto rejeter(Long id, String commentaire) {
-        AgentRequest r = agentRequestRepository.findById(id)
+        DemandeInscription r = agentRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande introuvable"));
         r.setStatut("REJETE");
         r.setCommentaireAdmin(commentaire);
@@ -72,7 +72,7 @@ public class AgentRequestServiceImpl implements AgentRequestService {
         return map(agentRequestRepository.save(r));
     }
 
-    private AgentRequestDto map(AgentRequest r) {
+    private AgentRequestDto map(DemandeInscription r) {
         return AgentRequestDto.builder()
                 .id(r.getId())
                 .nomLigne(r.getNomLigne())

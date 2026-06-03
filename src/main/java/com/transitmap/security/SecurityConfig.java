@@ -10,6 +10,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
+/**
+ * Configuration de la sécurité Spring Security.
+ * Définit les règles d'accès par rôle pour chaque endpoint.
+ */
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -18,25 +22,38 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+
+                // Accès public
                 .requestMatchers(
-                    "/",
-                    "/login",
-                    "/css/**",
-                    "/js/**",
-                    "/images/**",
-                    "/webjars/**"
+                    "/", "/login", "/map",
+                    "/inscription/**",
+                    "/api/**",
+                    "/css/**", "/js/**",
+                    "/images/**", "/webjars/**"
                 ).permitAll()
+
+                // Admin uniquement
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+
+                // Agent uniquement
                 .requestMatchers("/agent/**").hasRole("AGENT")
-                .requestMatchers("/map", "/map/**", "/api/**", "/voyageur/**").hasRole("VOYAGEUR")
-                .requestMatchers("/interurbain/**").hasAnyRole("VOYAGEUR","ADMIN","AGENT")
-                .requestMatchers("/admin/interurbain/**").hasRole("ADMIN")
-                .requestMatchers("/interurbain/**").hasAnyRole("VOYAGEUR","ADMIN","AGENT")
-                .requestMatchers("/admin/interurbain/**").hasRole("ADMIN")
+
+                // Chauffeur uniquement
+                .requestMatchers("/chauffeur/**").hasRole("CHAUFFEUR")
+
+                // Voyageur + Admin + Agent
+                .requestMatchers("/voyageur/**")
+                    .hasAnyRole("VOYAGEUR", "ADMIN", "AGENT")
+
+                // Interurbain
+                .requestMatchers("/interurbain/**")
+                    .hasAnyRole("VOYAGEUR", "ADMIN", "AGENT")
+
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -45,12 +62,12 @@ public class SecurityConfig {
                 .usernameParameter("username")
                 .passwordParameter("password")
                 .successHandler(loginSuccessHandler)
-                .failureUrl("/login?error=true")
+                .failureUrl("/login?erreur=true")
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout=true")
+                .logoutSuccessUrl("/login?deconnexion=true")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .permitAll()
@@ -60,11 +77,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /** Encodeur de mots de passe BCrypt */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    /** Gestionnaire d'authentification */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
