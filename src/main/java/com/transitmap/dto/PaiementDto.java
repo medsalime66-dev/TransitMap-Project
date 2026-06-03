@@ -1,59 +1,38 @@
 package com.transitmap.dto;
 
-import com.transitmap.entity.Reservation.StatutReservation;
-import com.transitmap.entity.Reservation.TypePaiement;
+import com.transitmap.entity.Paiement.MethodePaiement;
+import com.transitmap.entity.Paiement.StatutPaiement;
 import lombok.*;
 import java.time.LocalDateTime;
 
 /**
- * DTO pour la création et la consultation des réservations.
+ * DTO pour la soumission et la consultation des paiements.
  */
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
-public class ReservationDto {
+public class PaiementDto {
 
     private Long id;
 
-    /** ID du trajet à réserver */
-    private Long trajetId;
+    /** ID de la réservation associée */
+    private Long reservationId;
 
-    /** ID de l'arrêt de départ */
-    private Long arretDepartId;
+    /** Méthode de paiement choisie */
+    private MethodePaiement methode;
 
-    /** ID de l'arrêt d'arrivée */
-    private Long arretArriveeId;
-
-    /** Nom de l'arrêt de départ (lecture seule) */
-    private String arretDepartNom;
-
-    /** Nom de l'arrêt d'arrivée (lecture seule) */
-    private String arretArriveeNom;
-
-    /** Nom de la ligne (lecture seule) */
-    private String ligneNom;
-
-    /** Date du trajet (lecture seule) */
-    private String dateTrajet;
-
-    /** Heure de départ (lecture seule) */
-    private String heureDepart;
-
-    /** QR code généré (lecture seule) */
-    private String codeQR;
-
-    /** Code textuel court (lecture seule) */
-    private String codeTexte;
-
-    /** Type de paiement */
-    private TypePaiement typePaiement;
-
-    /** Statut de la réservation */
-    private StatutReservation statut;
-
-    /** Montant payé */
+    /** Montant en MRU */
     private Double montant;
 
-    /** Date de réservation */
-    private LocalDateTime dateReservation;
+    /** Code de transaction saisi par le voyageur */
+    private String codeTransaction;
+
+    /** Code commerçant de l'agent (affiché à l'écran) */
+    private String codeCommerçant;
+
+    /** Statut du paiement */
+    private StatutPaiement statut;
+
+    /** Date de validation */
+    private LocalDateTime dateValidation;
 }

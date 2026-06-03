@@ -11,63 +11,88 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
+/**
+ * Implémentation du service de gestion des véhicules (usage général).
+ */
 @Service
 @RequiredArgsConstructor
-public class VehiculeServiceImpl implements VehiculeService{
+public class VehiculeServiceImpl implements VehiculeService {
 
     private final VehiculeRepository vehiculeRepository;
     private final LigneRepository ligneRepository;
 
     @Override
-    public VehiculeDto create(VehiculeDto dto){
-        Ligne ligne=ligneRepository.findById(dto.getLigneId()).orElseThrow(()->new ResourceNotFoundException("Ligne introuvable"));
-        Vehicule v=Vehicule.builder()
+    public VehiculeDto create(VehiculeDto dto) {
+        Ligne ligne = ligneRepository.findById(dto.getLigneId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Ligne introuvable"));
+
+        Vehicule v = Vehicule.builder()
                 .matricule(dto.getMatricule())
+                .marque(dto.getMarque())
                 .capacite(dto.getCapacite())
+                .placesDisponibles(dto.getCapacite())
+                .annee(dto.getAnnee())
                 .statut(dto.getStatut())
-                .currentLatitude(dto.getCurrentLatitude())
-                .currentLongitude(dto.getCurrentLongitude())
+                .latitudeActuelle(dto.getLatitudeActuelle())
+                .longitudeActuelle(dto.getLongitudeActuelle())
                 .ligne(ligne)
                 .build();
-        return map(vehiculeRepository.save(v));
+
+        return mapper(vehiculeRepository.save(v));
     }
 
     @Override
-    public VehiculeDto update(Long id,VehiculeDto dto){
-        Vehicule v=vehiculeRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Vehicule introuvable"));
-        Ligne ligne=ligneRepository.findById(dto.getLigneId()).orElseThrow(()->new ResourceNotFoundException("Ligne introuvable"));
+    public VehiculeDto update(Long id, VehiculeDto dto) {
+        Vehicule v = vehiculeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Véhicule introuvable"));
+        Ligne ligne = ligneRepository.findById(dto.getLigneId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Ligne introuvable"));
+
         v.setMatricule(dto.getMatricule());
+        v.setMarque(dto.getMarque());
         v.setCapacite(dto.getCapacite());
+        v.setAnnee(dto.getAnnee());
         v.setStatut(dto.getStatut());
-        v.setCurrentLatitude(dto.getCurrentLatitude());
-        v.setCurrentLongitude(dto.getCurrentLongitude());
+        v.setLatitudeActuelle(dto.getLatitudeActuelle());
+        v.setLongitudeActuelle(dto.getLongitudeActuelle());
         v.setLigne(ligne);
-        return map(vehiculeRepository.save(v));
+
+        return mapper(vehiculeRepository.save(v));
     }
 
     @Override
-    public VehiculeDto findById(Long id){
-        return map(vehiculeRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Vehicule introuvable")));
+    public VehiculeDto findById(Long id) {
+        return mapper(vehiculeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Véhicule introuvable")));
     }
 
     @Override
-    public List<VehiculeDto> findAll(){
-        return vehiculeRepository.findAll().stream().map(this::map).toList();
+    public List<VehiculeDto> findAll() {
+        return vehiculeRepository.findAll()
+                .stream().map(this::mapper).toList();
     }
 
     @Override
-    public void delete(Long id){
+    public void delete(Long id) {
         vehiculeRepository.deleteById(id);
     }
 
-    private VehiculeDto map(Vehicule v){
+    /** Convertit Vehicule en DTO */
+    private VehiculeDto mapper(Vehicule v) {
         return VehiculeDto.builder()
                 .id(v.getId())
                 .matricule(v.getMatricule())
+                .marque(v.getMarque())
                 .capacite(v.getCapacite())
+                .placesDisponibles(v.getPlacesDisponibles())
+                .annee(v.getAnnee())
                 .statut(v.getStatut())
-                .currentLatitude(v.getCurrentLatitude())
-                .currentLongitude(v.getCurrentLongitude())
+                .latitudeActuelle(v.getLatitudeActuelle())
+                .longitudeActuelle(v.getLongitudeActuelle())
                 .ligneId(v.getLigne().getId())
                 .build();
     }

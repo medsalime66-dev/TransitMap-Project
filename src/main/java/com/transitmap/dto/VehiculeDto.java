@@ -3,21 +3,44 @@ package com.transitmap.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+/**
+ * DTO pour la création et la mise à jour des véhicules.
+ */
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor
 @Builder
-public class VehiculeDto{
+public class VehiculeDto {
+
     private Long id;
-    @NotBlank(message="Matricule obligatoire")
+
+    @NotBlank(message = "Le matricule est obligatoire")
     private String matricule;
-    @NotNull(message="Capacite obligatoire")
+
+    /** Marque et modèle */
+    private String marque;
+
+    @NotNull(message = "La capacité est obligatoire")
     @Min(1)
     private Integer capacite;
-    @NotBlank(message="Statut obligatoire")
+
+    /** Places actuellement disponibles */
+    private Integer placesDisponibles;
+
+    /** Année de fabrication */
+    private Integer annee;
+
+    @NotBlank(message = "Le statut est obligatoire")
     private String statut;
-    private Double currentLatitude;
-    private Double currentLongitude;
-    @NotNull(message="Ligne obligatoire")
+
+    /** Position GPS — latitude */
+    private Double latitudeActuelle;
+
+    /** Position GPS — longitude */
+    private Double longitudeActuelle;
+
+    @NotNull(message = "La ligne est obligatoire")
     private Long ligneId;
+
+    /** Chauffeur assigné (optionnel) */
+    private Long chauffeurId;
 }

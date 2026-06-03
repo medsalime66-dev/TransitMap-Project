@@ -1,4 +1,4 @@
-package com.transitmap.controller.public_;
+package com.transitmap.controller.inscription;
 
 import com.transitmap.dto.DemandeInscriptionDto;
 import com.transitmap.entity.DemandeInscription;
