@@ -1,12 +1,13 @@
 package com.transitmap.controller.admin;
 
+import com.transitmap.entity.DemandeInscription.StatutDemande;
 import com.transitmap.repository.*;
 import com.transitmap.service.admin.AdminDemandeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
+import com.transitmap.entity.DemandeInscription.StatutDemande;
 import java.time.LocalDate;
 
 /**
@@ -81,10 +82,16 @@ public class AdminSurveillanceController {
         model.addAttribute("totalVehicules", vehiculeRepository.count());
         model.addAttribute("demandesEnAttente",
                 demandes.stream()
-                        .filter(d -> "EN_ATTENTE".equals(
-                                d.getStatut() != null
-                                        ? d.getStatut().name() : ""))
+                        .filter(d -> d.getStatut() != null &&
+                                d.getStatut() == StatutDemande.EN_ATTENTE)
                         .count());
         return "admin/activite";
+    }
+    /** Liste toutes les demandes d'inscription (alias) */
+    @GetMapping("/demandes")
+    public String demandes(Model model) {
+        model.addAttribute("demandes",
+                adminDemandeService.trouverToutes());
+        return "admin/demandes";
     }
 }

@@ -2,60 +2,58 @@ package com.transitmap.dto;
 
 import com.transitmap.entity.DemandeInscription.StatutDemande;
 import com.transitmap.entity.Entreprise.TypeService;
-import jakarta.validation.constraints.*;
-import lombok.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 /**
- * DTO pour la soumission et la consultation des demandes d'inscription.
+ * DTO pour les demandes d'inscription agent.
  */
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DemandeInscriptionDto {
 
     private Long id;
 
-    // === Informations personnelles ===
-
     @NotBlank(message = "Le nom complet est obligatoire")
-    @Size(max = 150)
     private String nomComplet;
 
     @NotBlank(message = "L'email est obligatoire")
-    @Email(message = "Format d'email invalide")
+    @Email(message = "Email invalide")
     private String email;
 
     @NotBlank(message = "Le téléphone est obligatoire")
-    @Size(max = 20)
     private String telephone;
 
-    @Size(max = 50)
     private String numeroCIN;
 
-    // === Informations entreprise ===
-
     @NotBlank(message = "Le nom de l'entreprise est obligatoire")
-    @Size(max = 200)
     private String nomEntreprise;
 
-    @Size(max = 100)
+    @NotBlank(message = "Le registre commercial est obligatoire")
     private String numeroCommercial;
 
-    @Size(max = 300)
     private String adresse;
 
-    @NotNull(message = "Le type de service est obligatoire")
-    private TypeService typeService;
+    @NotBlank(message = "Le type de service est obligatoire")
+    private String typeService;
 
-    @Size(max = 1000)
     private String description;
 
     @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 6)
-    private String motDePasse;
+    @Size(min = 6, message = "Minimum 6 caractères")
+    private String motDePasseInitial;
 
-    // === Codes de paiement (au moins un obligatoire) ===
+    @NotBlank(message = "La confirmation est obligatoire")
+    private String confirmerMotDePasse;
 
     private String codeBankily;
     private String codeMasrvi;
@@ -64,8 +62,6 @@ public class DemandeInscriptionDto {
     private String codeBamis;
     private String codeBimbank;
     private String codeBciPay;
-
-    // === Lecture seule ===
 
     private StatutDemande statut;
     private LocalDateTime dateCreation;

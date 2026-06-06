@@ -2,9 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Admin — Demandes</title>
+    <title>Mes véhicules</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/css/admin.css" rel="stylesheet">
+        <link href="/css/admin.css" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;}
         body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
@@ -45,58 +45,69 @@
         <div th:replace="~{fragments/sidebar :: sidebar}"></div>
         <div class="content">
 
-            <div class="page-title">Demandes des Agents</div>
+            <div style="display:flex;align-items:center;
+                        justify-content:space-between;margin-bottom:24px;">
+                <div class="page-title" style="margin:0;">
+                    Mes véhicules
+                </div>
+                <a th:href="@{/agent/vehicules/creer}"
+                   class="btn-add">+ Ajouter un véhicule</a>
+            </div>
 
             <div class="card">
-                <div class="empty" th:if="${#lists.isEmpty(demandes)}">
-                    Aucune demande.
+                <div class="empty"
+                     th:if="${#lists.isEmpty(vehicules)}">
+                    Aucun véhicule enregistré.
+                    <a th:href="@{/agent/vehicules/creer}"
+                       style="color:#185FA5;">
+                        Ajouter le premier →
+                    </a>
                 </div>
-                <table class="tbl" th:if="${!#lists.isEmpty(demandes)}">
+
+                <table class="tbl"
+                       th:if="${!#lists.isEmpty(vehicules)}">
                     <thead>
                         <tr>
-                            <th>Demandeur</th>
-                            <th>Entreprise</th>
-                            <th>Téléphone</th>
-                            <th>Description</th>
-                            <th>Date</th>
+                            <th>Matricule</th>
+                            <th>Marque</th>
+                            <th>Capacité</th>
+                            <th>Places dispo</th>
                             <th>Statut</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="d : ${demandes}">
-                            <td style="font-weight:500;"
-                                th:text="${d.nomComplet}"></td>
-                            <td th:text="${d.nomEntreprise}"></td>
-                            <td th:text="${d.telephone}"></td>
-                            <td style="color:#888;"
-                                th:text="${d.description ?: '—'}"></td>
-                            <td th:text="${#temporals.format(
-                                d.dateCreation,'dd/MM/yyyy')}"></td>
+                        <tr th:each="v : ${vehicules}">
+                            <td style="font-weight:600;"
+                                th:text="${v.matricule}"></td>
+                            <td th:text="${v.marque ?: '—'}"></td>
+                            <td th:text="${v.capacite}"></td>
                             <td>
-                                <span th:class="${d.statut.name()=='EN_ATTENTE'}
-                                    ?'badge b-wait':
-                                    (${d.statut.name()=='APPROUVEE'}
-                                    ?'badge b-appr':'badge b-rej')"
-                                    th:text="${d.statut}"></span>
+                                <span th:text="${v.placesDisponibles}"
+                                      th:style="${v.placesDisponibles == 0 ?
+                                          'color:#A32D2D;font-weight:700' :
+                                          'color:#3B6D11;font-weight:700'}">
+                                </span>
                             </td>
-                            <td th:if="${d.statut.name() == 'EN_ATTENTE'}">
-                                <form th:action="@{/admin/demandes-inscription/
-                                    {id}/approuver(id=${d.id})}"
-                                    method="post" style="display:inline;">
-                                    <button type="submit"
-                                            class="btn-appr">✓ Approuver</button>
-                                </form>
-                                <form th:action="@{/admin/demandes-inscription/
-                                    {id}/rejeter(id=${d.id})}"
-                                    method="post" style="display:inline;">
-                                    <button type="submit"
-                                            class="btn-rej">✗ Rejeter</button>
-                                </form>
+                            <td>
+                                <span th:class="${v.statut == 'EN_SERVICE'}
+                                    ? 'badge b-active' : 'badge b-plan'"
+                                      th:text="${v.statut}"></span>
                             </td>
-                            <td th:unless="${d.statut.name() == 'EN_ATTENTE'}"
-                                style="color:#888;font-size:12px;"
-                                th:text="${d.commentaireAdmin ?: '—'}">
+                            <td>
+                                <a th:href="@{/agent/vehicules/modifier/{id}
+                                    (id=${v.id})}"
+                                   class="btn-sm btn-detail"
+                                   style="margin-right:4px;">
+                                    Modifier
+                                </a>
+                                <a th:href="@{/agent/vehicules/supprimer/{id}
+                                    (id=${v.id})}"
+                                   class="btn-sm btn-del"
+                                   onclick="return confirm(
+                                       'Supprimer ce véhicule ?')">
+                                    Supprimer
+                                </a>
                             </td>
                         </tr>
                     </tbody>

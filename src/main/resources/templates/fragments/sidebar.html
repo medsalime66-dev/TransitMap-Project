@@ -1,119 +1,138 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 <div th:fragment="sidebar" id="sidebar"
      style="width:240px;background:#0f1729;
             min-height:calc(100vh - 56px);
             padding:20px 14px;flex-shrink:0;
-            transition:width 0.25s ease;
             overflow:hidden;position:relative;">
 
-    <!-- Bouton toggle -->
-    <button onclick="toggleSidebar()"
-            id="sidebar-toggle"
-            style="position:absolute;top:14px;right:12px;
-                   background:rgba(255,255,255,0.08);border:none;
-                   color:#8896b3;width:28px;height:28px;
-                   border-radius:6px;cursor:pointer;font-size:14px;
-                   display:flex;align-items:center;
-                   justify-content:center;">◀</button>
+    <!-- ADMIN ONLY -->
+    <div sec:authorize="hasRole('ADMIN')">
+        <div class="sidebar-section-label">Principal</div>
+        <a th:href="@{/admin/dashboard}" class="sidebar-link">
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-text">Dashboard</span>
+        </a>
+        <a th:href="@{/admin/activite}" class="sidebar-link">
+            <span class="sidebar-icon">📡</span>
+            <span class="sidebar-text">Activité</span>
+        </a>
+        <a th:href="@{/admin/users}" class="sidebar-link">
+            <span class="sidebar-icon">👥</span>
+            <span class="sidebar-text">Utilisateurs</span>
+        </a>
 
-    <!-- Principal -->
-    <div class="sidebar-section-label">Principal</div>
-    <a th:href="@{/admin/dashboard}" class="sidebar-link">
-        <span class="sidebar-icon">📊</span>
-        <span class="sidebar-text">Dashboard</span>
-    </a>
-    <a th:href="@{/admin/activite}" class="sidebar-link">
-        <span class="sidebar-icon">📡</span>
-        <span class="sidebar-text">Activité</span>
-    </a>
-    <a th:href="@{/admin/users}" class="sidebar-link">
-        <span class="sidebar-icon">👥</span>
-        <span class="sidebar-text">Utilisateurs</span>
-    </a>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Agents</div>
+        <a th:href="@{/admin/demandes-inscription}" class="sidebar-link">
+            <span class="sidebar-icon">📨</span>
+            <span class="sidebar-text">Demandes inscription</span>
+        </a>
+        <a th:href="@{/admin/demandes}" class="sidebar-link">
+            <span class="sidebar-icon">📋</span>
+            <span class="sidebar-text">Demandes lignes</span>
+        </a>
 
-    <!-- Inscriptions -->
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section-label">Agents</div>
-    <a th:href="@{/admin/demandes-inscription}" class="sidebar-link">
-        <span class="sidebar-icon">📨</span>
-        <span class="sidebar-text">Demandes inscription</span>
-    </a>
-    <a th:href="@{/admin/demandes}" class="sidebar-link">
-        <span class="sidebar-icon">📋</span>
-        <span class="sidebar-text">Demandes lignes</span>
-    </a>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Transport urbain</div>
+        <a th:href="@{/lignes}" class="sidebar-link">
+            <span class="sidebar-icon">🛣</span>
+            <span class="sidebar-text">Lignes</span>
+        </a>
+        <a th:href="@{/arrets}" class="sidebar-link">
+            <span class="sidebar-icon">📍</span>
+            <span class="sidebar-text">Arrêts</span>
+        </a>
+        <a th:href="@{/vehicules}" class="sidebar-link">
+            <span class="sidebar-icon">🚌</span>
+            <span class="sidebar-text">Véhicules</span>
+        </a>
+        <a th:href="@{/trajets}" class="sidebar-link">
+            <span class="sidebar-icon">🕐</span>
+            <span class="sidebar-text">Trajets</span>
+        </a>
 
-    <!-- Transport urbain -->
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section-label">Transport urbain</div>
-    <a th:href="@{/lignes}" class="sidebar-link">
-        <span class="sidebar-icon">🛣</span>
-        <span class="sidebar-text">Lignes</span>
-    </a>
-    <a th:href="@{/arrets}" class="sidebar-link">
-        <span class="sidebar-icon">📍</span>
-        <span class="sidebar-text">Arrêts</span>
-    </a>
-    <a th:href="@{/vehicules}" class="sidebar-link">
-        <span class="sidebar-icon">🚌</span>
-        <span class="sidebar-text">Véhicules</span>
-    </a>
-    <a th:href="@{/trajets}" class="sidebar-link">
-        <span class="sidebar-icon">🕐</span>
-        <span class="sidebar-text">Trajets</span>
-    </a>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Surveillance</div>
+        <a th:href="@{/admin/surveillance/reservations}"
+           class="sidebar-link">
+            <span class="sidebar-icon">🎫</span>
+            <span class="sidebar-text">Réservations</span>
+        </a>
+        <a th:href="@{/admin/surveillance/vehicules}"
+           class="sidebar-link">
+            <span class="sidebar-icon">🚍</span>
+            <span class="sidebar-text">Véhicules en service</span>
+        </a>
 
-    <!-- Surveillance -->
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section-label">Surveillance</div>
-    <a th:href="@{/admin/surveillance/reservations}"
-       class="sidebar-link">
-        <span class="sidebar-icon">🎫</span>
-        <span class="sidebar-text">Réservations</span>
-    </a>
-    <a th:href="@{/admin/surveillance/vehicules}"
-       class="sidebar-link">
-        <span class="sidebar-icon">🚍</span>
-        <span class="sidebar-text">Véhicules en service</span>
-    </a>
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Interurbain</div>
+        <a th:href="@{/admin/interurbain}" class="sidebar-link">
+            <span class="sidebar-icon">🗺</span>
+            <span class="sidebar-text">Lignes interurbaines</span>
+        </a>
 
-    <!-- Interurbain -->
-    <div class="sidebar-divider"></div>
-    <div class="sidebar-section-label">Interurbain</div>
-    <a th:href="@{/admin/interurbain}" class="sidebar-link">
-        <span class="sidebar-icon">🗺</span>
-        <span class="sidebar-text">Lignes interurbaines</span>
-    </a>
+        <div class="sidebar-divider"></div>
+        <a th:href="@{/map}" class="sidebar-link">
+            <span class="sidebar-icon">🌍</span>
+            <span class="sidebar-text">Voir la carte</span>
+        </a>
+    </div>
 
-    <!-- Carte -->
-    <div class="sidebar-divider"></div>
-    <a th:href="@{/map}" class="sidebar-link">
-        <span class="sidebar-icon">🌍</span>
-        <span class="sidebar-text">Voir la carte</span>
-    </a>
+    <!-- AGENT ONLY -->
+    <div sec:authorize="hasRole('AGENT')">
+        <div class="sidebar-section-label">Principal</div>
+        <a th:href="@{/agent/dashboard}" class="sidebar-link">
+            <span class="sidebar-icon">📋</span>
+            <span class="sidebar-text">Tableau de bord</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Chauffeurs</div>
+        <a th:href="@{/agent/chauffeurs}" class="sidebar-link">
+            <span class="sidebar-icon">👤</span>
+            <span class="sidebar-text">Mes chauffeurs</span>
+        </a>
+        <a th:href="@{/agent/chauffeurs/creer}" class="sidebar-link">
+            <span class="sidebar-icon">➕</span>
+            <span class="sidebar-text">Ajouter chauffeur</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Véhicules</div>
+        <a th:href="@{/agent/vehicules}" class="sidebar-link">
+            <span class="sidebar-icon">🚌</span>
+            <span class="sidebar-text">Mes véhicules</span>
+        </a>
+        <a th:href="@{/agent/vehicules/creer}" class="sidebar-link">
+            <span class="sidebar-icon">➕</span>
+            <span class="sidebar-text">Ajouter véhicule</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Lignes</div>
+        <a th:href="@{/lignes}" class="sidebar-link">
+            <span class="sidebar-icon">🛣</span>
+            <span class="sidebar-text">Lignes</span>
+        </a>
+        <a th:href="@{/arrets}" class="sidebar-link">
+            <span class="sidebar-icon">📍</span>
+            <span class="sidebar-text">Arrêts</span>
+        </a>
+        <a th:href="@{/trajets}" class="sidebar-link">
+            <span class="sidebar-icon">🕐</span>
+            <span class="sidebar-text">Trajets</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <a th:href="@{/map}" class="sidebar-link">
+            <span class="sidebar-icon">🌍</span>
+            <span class="sidebar-text">Voir la carte</span>
+        </a>
+    </div>
 
 </div>
-
-<script>
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const btn = document.getElementById('sidebar-toggle');
-    sidebar.classList.toggle('collapsed');
-    btn.textContent = sidebar.classList.contains('collapsed')
-            ? '▶' : '◀';
-    localStorage.setItem('sidebar-collapsed',
-            sidebar.classList.contains('collapsed') ? '1' : '0');
-}
-document.addEventListener('DOMContentLoaded', function () {
-    if (localStorage.getItem('sidebar-collapsed') === '1') {
-        document.getElementById('sidebar')
-                .classList.add('collapsed');
-        document.getElementById('sidebar-toggle')
-                .textContent = '▶';
-    }
-});
-</script>
 </body>
 </html>

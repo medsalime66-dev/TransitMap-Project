@@ -87,23 +87,19 @@
             </div>
 
             <!-- Historique demandes -->
-            <div class="card">
-                <div class="card-title">Historique des demandes de lignes</div>
-                <div class="empty" th:if="${#lists.isEmpty(demandes)}">
-                    Aucune demande.
+            <div th:each="d : ${demandes}" class="activity-item">
+                <div class="activity-icon" style="background:#EEEDFE;">📋</div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;font-weight:600;"
+                        th:text="${d.nomComplet + ' — ' + d.nomEntreprise}"></div>
+                    <div style="font-size:12px;color:#888;"
+                        th:text="${#temporals.format(
+                            d.dateCreation,'dd/MM/yyyy HH:mm')}"></div>
                 </div>
-                <div th:each="d : ${demandes}" class="activity-item">
-                    <div class="activity-icon" style="background:#EEEDFE;">📋</div>
-                    <div style="flex:1;">
-                        <div style="font-size:13px;font-weight:600;"
-                             th:text="${d.agentUsername + ' — ' + d.nomLigne}"></div>
-                        <div style="font-size:12px;color:#888;"
-                             th:text="${#temporals.format(d.dateCreation,'dd/MM/yyyy HH:mm')}"></div>
-                    </div>
-                    <span th:class="${d.statut=='EN_ATTENTE'}?'badge b-wait':
-                                    (${d.statut=='APPROUVE'}?'badge b-appr':'badge b-rej')"
-                          th:text="${d.statut}"></span>
-                </div>
+                <span th:class="${d.statut.name()=='EN_ATTENTE'}?'badge b-wait':
+                                (${d.statut.name()=='APPROUVEE'}
+                                ?'badge b-appr':'badge b-rej')"
+                    th:text="${d.statut}"></span>
             </div>
 
         </div>

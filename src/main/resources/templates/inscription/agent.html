@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>TransitMap — Demande Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body{background:#f0f2f5;display:flex;align-items:center;
+             justify-content:center;min-height:100vh;padding:24px 0;}
+        .card-wrap{width:560px;border-radius:12px;
+                   border:1px solid #e0e0e0;padding:36px;
+                   background:white;}
+        .page-title{font-size:20px;font-weight:700;
+                    color:#1a1a2e;margin-bottom:4px;}
+        .page-sub{font-size:13px;color:#888;margin-bottom:24px;}
+        .section-label{font-size:12px;font-weight:700;
+                       color:#185FA5;text-transform:uppercase;
+                       letter-spacing:1px;margin:20px 0 12px;
+                       display:block;}
+        .form-label{font-size:13px;color:#555;
+                    margin-bottom:4px;display:block;}
+        .form-control,.form-select{font-size:13px;
+                                   border-radius:8px;
+                                   border:1px solid #e0e0e0;
+                                   padding:9px 12px;}
+        .form-control:focus,.form-select:focus{
+            border-color:#185FA5;
+            box-shadow:0 0 0 3px rgba(24,95,165,0.1);}
+        .optional-note{font-size:11px;color:#aaa;
+                       font-weight:400;margin-left:4px;}
+        .btn-submit{width:100%;background:#1D9E75;color:white;
+                    border:none;padding:11px;border-radius:8px;
+                    font-size:15px;font-weight:600;cursor:pointer;
+                    margin-top:8px;}
+        .btn-submit:hover{background:#0F6E56;}
+        .back-link{display:block;text-align:center;
+                   margin-top:16px;font-size:13px;
+                   color:#185FA5;text-decoration:none;}
+        .info-note{background:#E6F1FB;color:#185FA5;
+                   border:1px solid #B5D4F4;border-radius:8px;
+                   padding:10px 14px;font-size:12px;
+                   margin-bottom:20px;}
+        .text-danger{font-size:12px;color:#E24B4A;}
+        .rejected-alert{background:#FCEBEB;color:#A32D2D;
+                        border:1px solid #F09595;border-radius:8px;
+                        padding:12px 14px;font-size:13px;
+                        margin-bottom:20px;}
+    </style>
+</head>
+<body>
+<div class="card-wrap">
+    <div class="page-title">Demande agent de transport</div>
+    <div class="page-sub">
+        Votre dossier sera examiné par l'administrateur
+    </div>
+
+    <!-- Message si rejeté -->
+    <div class="rejected-alert"
+         th:if="${demande != null and
+                  demande.statut.name() == 'REJETEE'}">
+        <strong>❌ Votre demande précédente a été rejetée.</strong><br>
+        Veuillez corriger les informations et resoumettre.
+        Les champs sont pré-remplis avec vos données précédentes.
+    </div>
+
+    <div class="info-note"
+         th:unless="${demande != null and
+                      demande.statut.name() == 'REJETEE'}">
+        ⏳ Après soumission, l'administrateur examinera votre
+        dossier sous 48h
+    </div>
+
+    <form th:action="@{/inscription/agent}"
+          th:object="${demandeForm}" method="post">
+
+        <!-- Informations personnelles -->
+        <span class="section-label">Informations personnelles</span>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <label class="form-label">Nom complet *</label>
+                <input type="text" th:field="*{nomComplet}"
+                       class="form-control"
+                       placeholder="Mohamed Ould...">
+                <div class="text-danger"
+                     th:errors="*{nomComplet}"></div>
+            </div>
+            <div class="col-6">
+                <label class="form-label">Téléphone *</label>
+                <input type="tel" th:field="*{telephone}"
+                       class="form-control"
+                       placeholder="20000000">
+                <div class="text-danger"
+                     th:errors="*{telephone}"></div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <label class="form-label">Email *</label>
+                <input type="email" th:field="*{email}"
+                       class="form-control"
+                       placeholder="agent@email.com">
+                <div class="text-danger"
+                     th:errors="*{email}"></div>
+            </div>
+            <div class="col-6">
+                <label class="form-label">N° CIN</label>
+                <input type="text" th:field="*{numeroCIN}"
+                       class="form-control"
+                       placeholder="MR-XXXXX">
+            </div>
+        </div>
+
+        <!-- Entreprise -->
+        <span class="section-label">Entreprise</span>
+
+        <div class="mb-3">
+            <label class="form-label">Nom de l'entreprise *</label>
+            <input type="text" th:field="*{nomEntreprise}"
+                   class="form-control"
+                   placeholder="Transport Oasis SARL">
+            <div class="text-danger"
+                 th:errors="*{nomEntreprise}"></div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <label class="form-label">
+                    Registre commercial *
+                </label>
+                <input type="text" th:field="*{numeroCommercial}"
+                       class="form-control"
+                       placeholder="TRN-2024-001">
+                <div class="text-danger"
+                     th:errors="*{numeroCommercial}"></div>
+            </div>
+            <div class="col-6">
+                <label class="form-label">Type de service *</label>
+                <select th:field="*{typeService}"
+                        class="form-select">
+                    <option value="">-- Choisir --</option>
+                    <option value="URBAIN">Urbain</option>
+                    <option value="INTERURBAIN">Interurbain</option>
+                    <option value="LES_DEUX">Les deux</option>
+                </select>
+                <div class="text-danger"
+                     th:errors="*{typeService}"></div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">
+                Adresse
+                <span class="optional-note">(optionnel)</span>
+            </label>
+            <input type="text" th:field="*{adresse}"
+                   class="form-control"
+                   placeholder="Nouakchott, Mauritanie">
+        </div>
+
+        <!-- Codes de paiement -->
+        <span class="section-label">
+            Codes de paiement
+            <span class="optional-note"
+                  style="text-transform:none;">
+                (au moins un requis)
+            </span>
+        </span>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <label class="form-label">Bankily</label>
+                <input type="text" th:field="*{codeBankily}"
+                       class="form-control"
+                       placeholder="Code Bankily">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Masrvi</label>
+                <input type="text" th:field="*{codeMasrvi}"
+                       class="form-control"
+                       placeholder="Code Masrvi">
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <label class="form-label">Sedad</label>
+                <input type="text" th:field="*{codeSedad}"
+                       class="form-control"
+                       placeholder="Code Sedad">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Click</label>
+                <input type="text" th:field="*{codeClick}"
+                       class="form-control"
+                       placeholder="Code Click">
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <label class="form-label">BimBank</label>
+                <input type="text" th:field="*{codeBimbank}"
+                       class="form-control"
+                       placeholder="Code BimBank">
+            </div>
+            <div class="col-6">
+                <label class="form-label">BciPay</label>
+                <input type="text" th:field="*{codeBciPay}"
+                       class="form-control"
+                       placeholder="Code BciPay">
+            </div>
+        </div>
+
+        <!-- Description -->
+        <span class="section-label">Description</span>
+        <div class="mb-3">
+            <label class="form-label">
+                Décrivez votre activité
+                <span class="optional-note">(optionnel)</span>
+            </label>
+            <textarea th:field="*{description}"
+                      class="form-control" rows="2"
+                      placeholder="Ex: Transport urbain dans la wilaya de Nouakchott...">
+            </textarea>
+        </div>
+
+        <!-- Mot de passe -->
+        <span class="section-label">Mot de passe du compte</span>
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <label class="form-label">Mot de passe *</label>
+                <input type="password"
+                       th:field="*{motDePasseInitial}"
+                       class="form-control"
+                       placeholder="Min. 6 caractères">
+                <div class="text-danger"
+                     th:errors="*{motDePasseInitial}"></div>
+            </div>
+            <div class="col-6">
+                <label class="form-label">Confirmer *</label>
+                <input type="password"
+                       th:field="*{confirmerMotDePasse}"
+                       class="form-control"
+                       placeholder="••••••••">
+                <div class="text-danger"
+                     th:errors="*{confirmerMotDePasse}"></div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            Envoyer la demande →
+        </button>
+    </form>
+
+    <a href="/inscription/choix" class="back-link">
+        ← Retour au choix du compte
+    </a>
+</div>
+</body>
+</html>

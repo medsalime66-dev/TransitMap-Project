@@ -16,6 +16,7 @@
 <body>
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 <div class="container">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
     <div class="form-card">
         <h5>Nouvelle demande de ligne</h5>
         <form th:action="@{/agent/demandes/create}" th:object="${demande}" method="post">

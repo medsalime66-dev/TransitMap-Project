@@ -32,9 +32,10 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/", "/login", "/map",
                     "/inscription/**",
-                    "/api/**",
+                    "/map-api/**",
                     "/css/**", "/js/**",
-                    "/images/**", "/webjars/**"
+                    "/images/**", "/webjars/**",
+                    "/static/**"
                 ).permitAll()
 
                 // Admin uniquement
@@ -42,6 +43,10 @@ public class SecurityConfig {
 
                 // Agent uniquement
                 .requestMatchers("/agent/**").hasRole("AGENT")
+
+                // Page d'attente accessible aux agents en attente
+                .requestMatchers("/inscription/en-attente")
+                    .hasAnyRole("AGENT", "VOYAGEUR")
 
                 // Chauffeur uniquement
                 .requestMatchers("/chauffeur/**").hasRole("CHAUFFEUR")

@@ -13,9 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * Implémentation du service de traitement des demandes d'inscription.
- */
 @Service
 @RequiredArgsConstructor
 public class AdminDemandeServiceImpl implements AdminDemandeService {
@@ -26,9 +23,6 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
     private final EntrepriseRepository entrepriseRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Retourne toutes les demandes triées par date décroissante.
-     */
     @Override
     @Transactional(readOnly = true)
     public List<DemandeInscriptionDto> trouverToutes() {
@@ -36,34 +30,26 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
                 .stream().map(this::mapper).toList();
     }
 
-    /**
-     * Retourne uniquement les demandes en attente de traitement.
-     */
     @Override
     @Transactional(readOnly = true)
     public List<DemandeInscriptionDto> trouverEnAttente() {
         return demandeRepository
-                .findByStatutOrderByDateCreationDesc(StatutDemande.EN_ATTENTE)
+                .findByStatutOrderByDateCreationDesc(
+                        StatutDemande.EN_ATTENTE)
                 .stream().map(this::mapper).toList();
     }
 
-    /**
-     * Approuve une demande et crée automatiquement le compte agent
-     * ainsi que son entreprise avec les codes de paiement.
-     */
     @Override
     @Transactional
-    public DemandeInscriptionDto approuver(Long id, String commentaire) {
-
+    public DemandeInscriptionDto approuver(Long id,
+                                            String commentaire) {
         DemandeInscription demande = trouverDemande(id);
 
-        // Vérification que la demande est en attente
         if (demande.getStatut() != StatutDemande.EN_ATTENTE) {
             throw new RuntimeException(
                     "Cette demande a déjà été traitée");
         }
 
-        // Création du compte utilisateur AGENT
         Role roleAgent = roleRepository.findByName("AGENT")
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Rôle AGENT introuvable"));
@@ -77,8 +63,7 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
                 .build();
         userRepository.save(agent);
 
-        // Création de l'entreprise avec les codes de paiement
-        Entreprise entreprise = Entreprise.builder()
+        entrepriseRepository.save(Entreprise.builder()
                 .nom(demande.getNomEntreprise())
                 .numeroCommercial(demande.getNumeroCommercial())
                 .adresse(demande.getAdresse())
@@ -91,24 +76,18 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
                 .codeBimbank(demande.getCodeBimbank())
                 .codeBciPay(demande.getCodeBciPay())
                 .agent(agent)
-                .build();
-        entrepriseRepository.save(entreprise);
+                .build());
 
-        // Mise à jour du statut de la demande
         demande.setStatut(StatutDemande.APPROUVEE);
         demande.setCommentaireAdmin(commentaire);
         demande.setDateTraitement(LocalDateTime.now());
-
         return mapper(demandeRepository.save(demande));
     }
 
-    /**
-     * Rejette une demande d'inscription.
-     */
     @Override
     @Transactional
-    public DemandeInscriptionDto rejeter(Long id, String commentaire) {
-
+    public DemandeInscriptionDto rejeter(Long id,
+                                          String commentaire) {
         DemandeInscription demande = trouverDemande(id);
 
         if (demande.getStatut() != StatutDemande.EN_ATTENTE) {
@@ -116,32 +95,38 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
                     "Cette demande a déjà été traitée");
         }
 
+        // Créer compte AGENT temporaire pour reconnexion
+        if (userRepository.findByUsername(demande.getEmail())
+                .isEmpty()) {
+            Role roleAgent = roleRepository.findByName("AGENT")
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Rôle AGENT introuvable"));
+            userRepository.save(User.builder()
+                    .username(demande.getEmail())
+                    .password(demande.getMotDePasseInitial())
+                    .enabled(true)
+                    .role(roleAgent)
+                    .build());
+        }
+
         demande.setStatut(StatutDemande.REJETEE);
         demande.setCommentaireAdmin(commentaire);
         demande.setDateTraitement(LocalDateTime.now());
-
         return mapper(demandeRepository.save(demande));
     }
 
-    /**
-     * Retourne une demande par son ID.
-     */
     @Override
     @Transactional(readOnly = true)
     public DemandeInscriptionDto trouverParId(Long id) {
         return mapper(trouverDemande(id));
     }
 
-    // === Méthodes privées ===
-
-    /** Trouve une demande ou lève une exception */
     private DemandeInscription trouverDemande(Long id) {
         return demandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Demande introuvable"));
     }
 
-    /** Convertit une entité DemandeInscription en DTO */
     private DemandeInscriptionDto mapper(DemandeInscription d) {
         return DemandeInscriptionDto.builder()
                 .id(d.getId())
@@ -152,7 +137,7 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
                 .nomEntreprise(d.getNomEntreprise())
                 .numeroCommercial(d.getNumeroCommercial())
                 .adresse(d.getAdresse())
-                .typeService(d.getTypeService())
+                .typeService(d.getTypeService().name())
                 .description(d.getDescription())
                 .codeBankily(d.getCodeBankily())
                 .codeMasrvi(d.getCodeMasrvi())

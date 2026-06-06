@@ -107,15 +107,24 @@
                 </div>
                 <table class="tbl" th:if="${!#lists.isEmpty(demandesEnAttente)}">
                     <thead>
-                        <tr><th>Agent</th><th>Ligne demandée</th><th>Date</th><th>Action</th></tr>
+                        <tr>
+                            <th>Demandeur</th>
+                            <th>Entreprise</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
                     </thead>
                     <tbody>
                         <tr th:each="d : ${demandesEnAttente}">
-                            <td th:text="${d.agentUsername}"></td>
-                            <td th:text="${d.numeroLigne + ' — ' + d.nomLigne}"></td>
-                            <td th:text="${#temporals.format(d.dateCreation,'dd/MM/yyyy')}"></td>
+                            <td style="font-weight:500;"
+                                th:text="${d.nomComplet}"></td>
+                            <td th:text="${d.nomEntreprise}"></td>
+                            <td th:text="${#temporals.format(
+                                d.dateCreation,'dd/MM/yyyy')}"></td>
                             <td>
-                                <a th:href="@{/admin/demandes}" class="link-blue">Traiter</a>
+                                <a th:href="@{/admin/demandes-inscription/{id}
+                                    (id=${d.id})}"
+                                class="link-blue">Traiter →</a>
                             </td>
                         </tr>
                     </tbody>

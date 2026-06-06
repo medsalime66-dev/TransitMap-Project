@@ -2,42 +2,31 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Nouvelle réservation</title>
+    <title>Choisir la méthode de paiement</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;}
         body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
         .layout{display:flex;flex-direction:column;min-height:100vh;}
-        .content{flex:1;padding:28px;max-width:640px;margin:0 auto;width:100%;}
+        .content{flex:1;padding:28px;max-width:520px;margin:0 auto;width:100%;}
         .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:6px;}
         .page-sub{font-size:13px;color:#888;margin-bottom:24px;}
-        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;
-              padding:20px;margin-bottom:16px;}
-        .card-title{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:14px;}
-        .trajet-info{display:flex;align-items:center;justify-content:space-between;
-                     background:#0f1729;border-radius:10px;padding:16px 20px;
-                     color:white;margin-bottom:16px;}
-        .trajet-ligne{font-size:16px;font-weight:700;}
-        .trajet-detail{font-size:12px;color:#8896b3;margin-top:3px;}
-        .places-badge{background:#1D9E75;color:white;padding:6px 14px;
-                      border-radius:8px;font-size:13px;font-weight:600;}
-        .form-label{font-size:13px;color:#555;margin-bottom:4px;display:block;}
-        .form-select{width:100%;padding:10px 12px;border:1px solid #e0e0e0;
-                     border-radius:8px;font-size:13px;
-                     background:white;}
-        .form-select:focus{border-color:#185FA5;
-                           box-shadow:0 0 0 3px rgba(24,95,165,0.1);outline:none;}
-        .arrets-container{display:grid;grid-template-columns:1fr 1fr;gap:12px;
-                          margin-bottom:16px;}
-        .fleche{display:flex;align-items:center;justify-content:center;
-                color:#aaa;font-size:20px;margin-top:28px;}
-        .btn-reserver{width:100%;background:#185FA5;color:white;border:none;
-                      padding:12px;border-radius:9px;font-size:15px;
-                      font-weight:600;cursor:pointer;}
-        .btn-reserver:hover{background:#0C447C;}
+        .recap{background:#0f1729;border-radius:10px;padding:14px 18px;
+               color:white;margin-bottom:20px;font-size:13px;}
+        .recap .montant{font-size:22px;font-weight:700;color:#1D9E75;margin-top:4px;}
+        .section-titre{font-size:12px;font-weight:700;color:#888;
+                       text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+        .methode-liste{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+        .methode-btn{display:flex;align-items:center;justify-content:space-between;
+                     padding:14px 18px;background:white;border:1px solid #e5e7eb;
+                     border-radius:10px;cursor:pointer;text-decoration:none;
+                     color:#1a1a2e;transition:border-color 0.15s;}
+        .methode-btn:hover{border-color:#185FA5;background:#E6F1FB;color:#185FA5;}
+        .methode-nom{font-size:15px;font-weight:600;}
+        .methode-desc{font-size:12px;color:#888;margin-top:2px;}
+        .methode-fleche{font-size:18px;color:#aaa;}
         .back{font-size:13px;color:#185FA5;text-decoration:none;
               display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;}
-        .arret-option{padding:4px 0;}
     </style>
 </head>
 <body>
@@ -45,80 +34,89 @@
     <div th:replace="~{fragments/navbar :: navbar}"></div>
     <div class="content">
 
-        <a href="/map" class="back">← Retour à la carte</a>
-        <div class="page-title">Nouvelle réservation</div>
-        <div class="page-sub">Choisissez vos arrêts de départ et d'arrivée</div>
+        <a th:href="@{/voyageur/reservations}" class="back">← Retour</a>
+        <div class="page-title">Payer via</div>
+        <div class="page-sub">Achetez votre ticket en un claquement de doigts</div>
 
-        <!-- Infos trajet -->
-        <div class="trajet-info">
-            <div>
-                <div class="trajet-ligne"
-                     th:text="${trajet.ligne.nom}"></div>
-                <div class="trajet-detail"
-                     th:text="${#temporals.format(trajet.dateTrajet,
-                         'dd MMM yyyy') + ' · ' +
-                         trajet.heureDepart + ' → ' +
-                         trajet.heureArrivee}"></div>
-            </div>
-            <div th:if="${trajet.vehicule != null}">
-                <div class="places-badge"
-                     th:text="${trajet.vehicule.placesDisponibles
-                         + ' places'}"></div>
+        <!-- Récapitulatif -->
+        <div class="recap">
+            <div th:text="${reservation.ligneNom}"></div>
+            <div th:text="${reservation.arretDepartNom
+                            + ' → ' + reservation.arretArriveeNom}"></div>
+            <div class="montant">
+                <span th:text="${reservation.montant != null ?
+                    reservation.montant + ' MRU' : 'Prix à confirmer'}"></span>
             </div>
         </div>
 
-        <!-- Formulaire -->
-        <div class="card">
-            <div class="card-title">Sélectionner les arrêts</div>
+        <div class="section-titre">Choisir un portefeuille</div>
 
-            <form th:action="@{/voyageur/reservations/creer}"
-                  method="post">
-                <input type="hidden" name="trajetId"
-                       th:value="${trajet.id}">
+        <div class="methode-liste">
 
-                <div class="arrets-container">
-                    <div>
-                        <label class="form-label">Arrêt de départ *</label>
-                        <select name="arretDepartId" class="form-select"
-                                required>
-                            <option value="">-- Départ --</option>
-                            <option th:each="a : ${arrets}"
-                                    th:value="${a.id}"
-                                    th:text="${a.ordre + '. ' + a.nom}">
-                            </option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="form-label">Arrêt d'arrivée *</label>
-                        <select name="arretArriveeId" class="form-select"
-                                required>
-                            <option value="">-- Arrivée --</option>
-                            <option th:each="a : ${arrets}"
-                                    th:value="${a.id}"
-                                    th:text="${a.ordre + '. ' + a.nom}">
-                            </option>
-                        </select>
-                    </div>
+            <a th:href="@{/voyageur/paiement/{id}/confirmer(id=${reservation.id},methode='BANKILY')}"
+               class="methode-btn">
+                <div>
+                    <div class="methode-nom">🏦 Bankily</div>
+                    <div class="methode-desc">Payer via B-Pay de Bankily</div>
                 </div>
+                <div class="methode-fleche">→</div>
+            </a>
 
-                <!-- Véhicule complet -->
-                <div th:if="${trajet.vehicule != null and
-                              trajet.vehicule.placesDisponibles <= 0}"
-                     style="background:#FCEBEB;color:#A32D2D;border-radius:8px;
-                            padding:12px;font-size:13px;margin-bottom:12px;
-                            text-align:center;">
-                    ⚠ Ce véhicule est complet — Aucune place disponible
+            <a th:href="@{/voyageur/paiement/{id}/confirmer(id=${reservation.id},methode='MASRVI')}"
+               class="methode-btn">
+                <div>
+                    <div class="methode-nom">🏦 Masrvi</div>
+                    <div class="methode-desc">Payer via Masrvi</div>
                 </div>
+                <div class="methode-fleche">→</div>
+            </a>
 
-                <button type="submit" class="btn-reserver"
-                        th:disabled="${trajet.vehicule != null and
-                                       trajet.vehicule.placesDisponibles <= 0}">
-                    Continuer vers le paiement →
-                </button>
-            </form>
+            <a th:href="@{/voyageur/paiement/{id}/confirmer(id=${reservation.id},methode='SEDAD')}"
+               class="methode-btn">
+                <div>
+                    <div class="methode-nom">🏦 Sedad</div>
+                    <div class="methode-desc">Payer via Sedad</div>
+                </div>
+                <div class="methode-fleche">→</div>
+            </a>
+
+            <a th:href="@{/voyageur/paiement/{id}/confirmer(id=${reservation.id},methode='CLICK')}"
+               class="methode-btn">
+                <div>
+                    <div class="methode-nom">🏦 Click</div>
+                    <div class="methode-desc">Payer via Click</div>
+                </div>
+                <div class="methode-fleche">→</div>
+            </a>
+
+            <a th:href="@{/voyageur/paiement/{id}/confirmer(id=${reservation.id},methode='BAMIS')}"
+               class="methode-btn">
+                <div>
+                    <div class="methode-nom">🏦 BAMIS Digital</div>
+                    <div class="methode-desc">Payer via BAMIS Digital</div>
+                </div>
+                <div class="methode-fleche">→</div>
+            </a>
+
+            <a th:href="@{/voyageur/paiement/{id}/confirmer(id=${reservation.id},methode='BIMBANK')}"
+               class="methode-btn">
+                <div>
+                    <div class="methode-nom">🏦 BimBank Mobile</div>
+                    <div class="methode-desc">Payer via BimBank Mobile</div>
+                </div>
+                <div class="methode-fleche">→</div>
+            </a>
+
+            <a th:href="@{/voyageur/paiement/{id}/confirmer(id=${reservation.id},methode='BCIPAY')}"
+               class="methode-btn">
+                <div>
+                    <div class="methode-nom">🏦 BciPay</div>
+                    <div class="methode-desc">Payer via BciPay</div>
+                </div>
+                <div class="methode-fleche">→</div>
+            </a>
+
         </div>
-
     </div>
 </div>
 </body>

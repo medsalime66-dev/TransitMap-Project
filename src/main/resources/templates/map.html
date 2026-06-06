@@ -45,19 +45,22 @@
             <!-- VOYAGEUR -->
             <th:block th:if="${userRole == 'VOYAGEUR'}">
                 <a href="/map" class="nav-link-item">🗺 Carte</a>
-                <a href="/interurbain/search" class="nav-link-item">🔍 Voyages</a>
+                <a href="/interurbain/search"
+                   class="nav-link-item">🔍 Voyages</a>
                 <a href="/logout" class="btn-logout">Déconnexion</a>
             </th:block>
 
             <!-- AGENT -->
             <th:block th:if="${userRole == 'AGENT'}">
-                <a href="/agent/dashboard" class="btn-dashboard">📋 Tableau de bord</a>
+                <a href="/agent/dashboard"
+                   class="btn-dashboard">📋 Tableau de bord</a>
                 <a href="/logout" class="btn-logout">Déconnexion</a>
             </th:block>
 
             <!-- ADMIN -->
             <th:block th:if="${userRole == 'ADMIN'}">
-                <a href="/admin/dashboard" class="btn-dashboard">📊 Dashboard</a>
+                <a href="/admin/dashboard"
+                   class="btn-dashboard">📊 Dashboard</a>
                 <a href="/logout" class="btn-logout">Déconnexion</a>
             </th:block>
 
@@ -84,33 +87,70 @@
 <script th:inline="javascript">
     const isVoyageur = /*[[${userRole == 'VOYAGEUR'}]]*/ false;
 
-    const map = L.map('map').setView([18.0735, -15.9582], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19}).addTo(map);
+    const map = L.map('map').setView([18.0735, -15.9582], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {maxZoom:19}).addTo(map);
 
-    fetch('/api/arrets').then(r=>r.json()).then(data=>{
-        data.forEach(a=>{
-            L.marker([a.latitude,a.longitude]).addTo(map).bindPopup(`<b>${a.nom}</b>`);
-        });
-    });
+    const couleurs = ['#185FA5','#3B6D11','#BA7517',
+                      '#7F77DD','#E24B4A','#1D9E75'];
 
-    fetch('/api/vehicules').then(r=>r.json()).then(data=>{
+    // Véhicules — position GPS
+    fetch('/map-api/vehicules').then(r=>r.json()).then(data=>{
         data.forEach(v=>{
-            if(v.currentLatitude&&v.currentLongitude){
-                L.circleMarker([v.currentLatitude,v.currentLongitude],{
-                    radius:9,color:'#E24B4A',fillColor:'#E24B4A',fillOpacity:0.9
-                }).addTo(map).bindPopup(`<b>${v.matricule}</b>`);
+            if(v.latitudeActuelle && v.longitudeActuelle){
+                L.circleMarker(
+                    [v.latitudeActuelle, v.longitudeActuelle],
+                    {radius:9, color:'#E24B4A',
+                     fillColor:'#E24B4A', fillOpacity:0.9}
+                ).addTo(map).bindPopup(`<b>${v.matricule}</b>`);
             }
         });
     });
 
-    fetch('/api/lignes').then(r=>r.json()).then(data=>{
-        const container=document.getElementById('ligneList');
-        data.forEach(l=>{
-            const chip=document.createElement('a');
-            chip.className='ligne-chip';
-            chip.textContent=`${l.numero} — ${l.nom}`;
-            chip.href=isVoyageur?`/voyageur/lignes/${l.id}/trajets`:'/login';
+    // Lignes — polylines + arrêts colorés
+    fetch('/map-api/lignes').then(r=>r.json()).then(data=>{
+        const container = document.getElementById('ligneList');
+        data.forEach((l, index) => {
+            const couleur = couleurs[index % couleurs.length];
+
+            const chip = document.createElement('a');
+            chip.className = 'ligne-chip';
+            chip.textContent = `${l.numero} — ${l.nom}`;
+            chip.href = isVoyageur
+                ? `/voyageur/lignes/${l.id}/trajets`
+                : '/login';
+            chip.style.borderColor = couleur;
+            chip.style.color = couleur;
             container.appendChild(chip);
+
+            fetch(`/map-api/arrets/ligne/${l.id}`)
+                .then(r=>r.json())
+                .then(arrets=>{
+                    if(!arrets || arrets.length < 2) return;
+                    arrets.sort((a,b) => a.ordre - b.ordre);
+                    const coords = arrets.map(a =>
+                        [a.latitude, a.longitude]);
+
+                    L.polyline(coords, {
+                        color: couleur, weight: 5, opacity: 0.85
+                    }).addTo(map).bindPopup(
+                        `<b>${l.numero}</b> — ${l.nom}`);
+
+                    arrets.forEach((a, i) => {
+                        const terminal =
+                            i === 0 || i === arrets.length - 1;
+                        L.circleMarker(
+                            [a.latitude, a.longitude], {
+                            radius: terminal ? 9 : 6,
+                            color: couleur,
+                            fillColor: terminal ? couleur : 'white',
+                            fillOpacity: 1,
+                            weight: 2
+                        }).addTo(map).bindPopup(
+                            `<b>${a.nom}</b><br>
+                             <small>${l.nom}</small>`);
+                    });
+                });
         });
     });
 </script>

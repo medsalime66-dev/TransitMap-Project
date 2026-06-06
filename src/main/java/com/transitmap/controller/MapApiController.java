@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
  * Fournit les arrêts, véhicules et lignes en JSON.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/map-api")
 @RequiredArgsConstructor
 public class MapApiController {
 
@@ -23,6 +23,12 @@ public class MapApiController {
     @GetMapping("/arrets")
     public Object arrets() {
         return arretRepository.findAll();
+    }
+
+    /** Retourne les arrêts d'une ligne triés par ordre */
+    @GetMapping("/arrets/ligne/{ligneId}")
+    public Object arretsDeLigne(@PathVariable Long ligneId) {
+        return arretRepository.findByLigneIdOrderByOrdreAsc(ligneId);
     }
 
     /** Retourne tous les véhicules avec leur position GPS */
