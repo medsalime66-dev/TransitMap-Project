@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Détail demande</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
+    <style>
+        .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;
+                   margin-bottom:20px;}
+        .info-item label{font-size:12px;color:#888;display:block;
+                         margin-bottom:3px;}
+        .info-item span{font-size:14px;color:#1a1a2e;font-weight:500;}
+        .code-tag{background:#E6F1FB;color:#185FA5;padding:3px 10px;
+                  border-radius:6px;font-size:13px;font-family:monospace;
+                  margin-right:6px;}
+        .code-absent{color:#aaa;font-size:12px;}
+        .action-zone{display:flex;gap:12px;margin-top:20px;}
+        textarea.form-control{border-radius:8px;border:1px solid #e0e0e0;
+                               font-size:13px;padding:9px 12px;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="main">
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div class="content">
+
+            <a href="/admin/demandes-inscription" class="back">
+                ← Retour aux demandes
+            </a>
+
+            <div class="page-title"
+                 th:text="${demande.nomComplet}"></div>
+
+            <!-- Statut -->
+            <div style="margin-bottom:20px;">
+                <span th:class="${demande.statut.name()=='EN_ATTENTE'}
+                    ?'badge b-wait':
+                    (${demande.statut.name()=='APPROUVEE'}
+                    ?'badge b-appr':'badge b-rej')"
+                      th:text="${demande.statut}"
+                      style="font-size:13px;padding:5px 14px;"></span>
+            </div>
+
+            <!-- Infos personnelles -->
+            <div class="card">
+                <div class="card-title">Informations personnelles</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Nom complet</label>
+                        <span th:text="${demande.nomComplet}"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Email</label>
+                        <span th:text="${demande.email}"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Téléphone</label>
+                        <span th:text="${demande.telephone}"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>CIN</label>
+                        <span th:text="${demande.numeroCIN ?: '—'}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Infos entreprise -->
+            <div class="card">
+                <div class="card-title">Informations entreprise</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Nom entreprise</label>
+                        <span th:text="${demande.nomEntreprise}"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Type de service</label>
+                        <span th:text="${demande.typeService}"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>N° commercial</label>
+                        <span th:text="${demande.numeroCommercial ?: '—'}"></span>
+                    </div>
+                    <div class="info-item">
+                        <label>Adresse</label>
+                        <span th:text="${demande.adresse ?: '—'}"></span>
+                    </div>
+                </div>
+                <div class="info-item" style="margin-top:8px;">
+                    <label>Description</label>
+                    <span th:text="${demande.description ?: '—'}"></span>
+                </div>
+            </div>
+
+            <!-- Codes de paiement -->
+            <div class="card">
+                <div class="card-title">Codes de paiement</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <span th:if="${demande.codeBankily}"
+                          class="code-tag">Bankily: <span
+                          th:text="${demande.codeBankily}"></span></span>
+                    <span th:if="${demande.codeMasrvi}"
+                          class="code-tag">Masrvi: <span
+                          th:text="${demande.codeMasrvi}"></span></span>
+                    <span th:if="${demande.codeSedad}"
+                          class="code-tag">Sedad: <span
+                          th:text="${demande.codeSedad}"></span></span>
+                    <span th:if="${demande.codeClick}"
+                          class="code-tag">Click: <span
+                          th:text="${demande.codeClick}"></span></span>
+                    <span th:if="${demande.codeBamis}"
+                          class="code-tag">BAMIS: <span
+                          th:text="${demande.codeBamis}"></span></span>
+                    <span th:if="${demande.codeBimbank}"
+                          class="code-tag">BimBank: <span
+                          th:text="${demande.codeBimbank}"></span></span>
+                    <span th:if="${demande.codeBciPay}"
+                          class="code-tag">BciPay: <span
+                          th:text="${demande.codeBciPay}"></span></span>
+                </div>
+            </div>
+
+            <!-- Actions (si en attente) -->
+            <div class="card"
+                 th:if="${demande.statut.name() == 'EN_ATTENTE'}">
+                <div class="card-title">Traiter la demande</div>
+                <div class="action-zone">
+                    <form th:action="@{/admin/demandes-inscription/
+                        {id}/approuver(id=${demande.id})}"
+                          method="post" style="flex:1;">
+                        <textarea name="commentaire" class="form-control"
+                                  rows="2"
+                                  placeholder="Commentaire (optionnel)"
+                                  style="margin-bottom:8px;"></textarea>
+                        <button type="submit" class="btn-appr"
+                                style="width:100%;padding:10px;">
+                            ✓ Approuver — Créer le compte agent
+                        </button>
+                    </form>
+                    <form th:action="@{/admin/demandes-inscription/
+                        {id}/rejeter(id=${demande.id})}"
+                          method="post" style="flex:1;">
+                        <textarea name="commentaire" class="form-control"
+                                  rows="2"
+                                  placeholder="Raison du rejet"
+                                  style="margin-bottom:8px;"></textarea>
+                        <button type="submit" class="btn-rej"
+                                style="width:100%;padding:10px;">
+                            ✗ Rejeter la demande
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Commentaire admin si traité -->
+            <div class="card"
+                 th:if="${demande.statut.name() != 'EN_ATTENTE'
+                         and demande.commentaireAdmin != null}">
+                <div class="card-title">Commentaire administrateur</div>
+                <p style="font-size:13px;color:#555;"
+                   th:text="${demande.commentaireAdmin}"></p>
+                <p style="font-size:12px;color:#aaa;margin-top:6px;"
+                   th:text="${'Traité le ' + #temporals.format(
+                       demande.dateTraitement,'dd/MM/yyyy HH:mm')}"></p>
+            </div>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

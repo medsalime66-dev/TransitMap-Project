@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="sidebar" id="sidebar"
+     style="width:240px;background:#0f1729;
+            min-height:calc(100vh - 56px);
+            padding:20px 14px;flex-shrink:0;
+            overflow:hidden;position:relative;">
+
+    <!-- ADMIN ONLY -->
+    <div sec:authorize="hasRole('ADMIN')">
+        <div class="sidebar-section-label">Principal</div>
+        <a th:href="@{/admin/dashboard}" class="sidebar-link">
+            <span class="sidebar-icon">📊</span>
+            <span class="sidebar-text">Dashboard</span>
+        </a>
+        <a th:href="@{/admin/activite}" class="sidebar-link">
+            <span class="sidebar-icon">📡</span>
+            <span class="sidebar-text">Activité</span>
+        </a>
+        <a th:href="@{/admin/users}" class="sidebar-link">
+            <span class="sidebar-icon">👥</span>
+            <span class="sidebar-text">Utilisateurs</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Agents</div>
+        <a th:href="@{/admin/demandes-inscription}" class="sidebar-link">
+            <span class="sidebar-icon">📨</span>
+            <span class="sidebar-text">Demandes inscription</span>
+        </a>
+        <a th:href="@{/admin/demandes}" class="sidebar-link">
+            <span class="sidebar-icon">📋</span>
+            <span class="sidebar-text">Demandes lignes</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Transport urbain</div>
+        <a th:href="@{/lignes}" class="sidebar-link">
+            <span class="sidebar-icon">🛣</span>
+            <span class="sidebar-text">Lignes</span>
+        </a>
+        <a th:href="@{/arrets}" class="sidebar-link">
+            <span class="sidebar-icon">📍</span>
+            <span class="sidebar-text">Arrêts</span>
+        </a>
+        <a th:href="@{/vehicules}" class="sidebar-link">
+            <span class="sidebar-icon">🚌</span>
+            <span class="sidebar-text">Véhicules</span>
+        </a>
+        <a th:href="@{/trajets}" class="sidebar-link">
+            <span class="sidebar-icon">🕐</span>
+            <span class="sidebar-text">Trajets</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Surveillance</div>
+        <a th:href="@{/admin/surveillance/reservations}"
+           class="sidebar-link">
+            <span class="sidebar-icon">🎫</span>
+            <span class="sidebar-text">Réservations</span>
+        </a>
+        <a th:href="@{/admin/surveillance/vehicules}"
+           class="sidebar-link">
+            <span class="sidebar-icon">🚍</span>
+            <span class="sidebar-text">Véhicules en service</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Interurbain</div>
+        <a th:href="@{/admin/interurbain}" class="sidebar-link">
+            <span class="sidebar-icon">🗺</span>
+            <span class="sidebar-text">Lignes interurbaines</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <a th:href="@{/map}" class="sidebar-link">
+            <span class="sidebar-icon">🌍</span>
+            <span class="sidebar-text">Voir la carte</span>
+        </a>
+    </div>
+
+    <!-- AGENT ONLY -->
+    <div sec:authorize="hasRole('AGENT')">
+        <div class="sidebar-section-label">Principal</div>
+        <a th:href="@{/agent/dashboard}" class="sidebar-link">
+            <span class="sidebar-icon">📋</span>
+            <span class="sidebar-text">Tableau de bord</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Chauffeurs</div>
+        <a th:href="@{/agent/chauffeurs}" class="sidebar-link">
+            <span class="sidebar-icon">👤</span>
+            <span class="sidebar-text">Mes chauffeurs</span>
+        </a>
+        <a th:href="@{/agent/chauffeurs/creer}" class="sidebar-link">
+            <span class="sidebar-icon">➕</span>
+            <span class="sidebar-text">Ajouter chauffeur</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Véhicules</div>
+        <a th:href="@{/agent/vehicules}" class="sidebar-link">
+            <span class="sidebar-icon">🚌</span>
+            <span class="sidebar-text">Mes véhicules</span>
+        </a>
+        <a th:href="@{/agent/vehicules/creer}" class="sidebar-link">
+            <span class="sidebar-icon">➕</span>
+            <span class="sidebar-text">Ajouter véhicule</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Lignes</div>
+        <a th:href="@{/lignes}" class="sidebar-link">
+            <span class="sidebar-icon">🛣</span>
+            <span class="sidebar-text">Lignes</span>
+        </a>
+        <a th:href="@{/arrets}" class="sidebar-link">
+            <span class="sidebar-icon">📍</span>
+            <span class="sidebar-text">Arrêts</span>
+        </a>
+        <a th:href="@{/trajets}" class="sidebar-link">
+            <span class="sidebar-icon">🕐</span>
+            <span class="sidebar-text">Trajets</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
+        <a th:href="@{/map}" class="sidebar-link">
+            <span class="sidebar-icon">🌍</span>
+            <span class="sidebar-text">Voir la carte</span>
+        </a>
+    </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes demandes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body{background:#f0f2f5;}
+        .card-box{background:white;border:1px solid #e0e0e0;border-radius:10px;padding:20px;margin-top:20px;}
+        .badge-attente{background:#FAEEDA;color:#633806;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-approuve{background:#EAF3DE;color:#3B6D11;padding:3px 10px;border-radius:20px;font-size:12px;}
+        .badge-rejete{background:#FCEBEB;color:#A32D2D;padding:3px 10px;border-radius:20px;font-size:12px;}
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div class="container mt-4">
+    <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h5 style="font-weight:600;margin:0;">Mes demandes de lignes</h5>
+        <a th:href="@{/agent/demandes/create}"
+           style="background:#185FA5;color:white;padding:7px 16px;border-radius:8px;font-size:13px;text-decoration:none;">
+            + Nouvelle demande
+        </a>
+    </div>
+    <div class="card-box">
+        <div th:if="${#lists.isEmpty(demandes)}"
+             style="color:#888;font-size:13px;text-align:center;padding:30px 0;">
+            Aucune demande.
+        </div>
+        <table class="table table-borderless" th:if="${!#lists.isEmpty(demandes)}">
+            <thead style="font-size:12px;color:#888;">
+                <tr><th>Ligne</th><th>Numéro</th><th>Description</th><th>Date</th><th>Statut</th><th>Commentaire</th></tr>
+            </thead>
+            <tbody style="font-size:13px;">
+                <tr th:each="d : ${demandes}">
+                    <td th:text="${d.nomLigne}"></td>
+                    <td th:text="${d.numeroLigne}"></td>
+                    <td th:text="${d.description}"></td>
+                    <td th:text="${#temporals.format(d.dateCreation,'dd/MM/yyyy')}"></td>
+                    <td>
+                        <span th:class="${d.statut=='EN_ATTENTE'}?'badge-attente':
+                                        (${d.statut=='APPROUVE'}?'badge-approuve':'badge-rejete')"
+                              th:text="${d.statut}"></span>
+                    </td>
+                    <td style="color:#888;" th:text="${d.commentaireAdmin ?: '—'}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

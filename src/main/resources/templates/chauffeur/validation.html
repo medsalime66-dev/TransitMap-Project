@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Validation réservation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .content{flex:1;padding:28px;max-width:500px;margin:0 auto;width:100%;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:24px;}
+        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;
+              padding:24px;margin-bottom:16px;}
+        .card-title{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:14px;}
+        .form-control{width:100%;padding:12px 16px;border:1px solid #e0e0e0;
+                      border-radius:9px;font-size:18px;font-family:monospace;
+                      text-transform:uppercase;letter-spacing:3px;
+                      text-align:center;}
+        .btn-valider{width:100%;background:#185FA5;color:white;border:none;
+                     padding:12px;border-radius:9px;font-size:15px;
+                     font-weight:600;cursor:pointer;margin-top:12px;}
+        .btn-valider:hover{background:#0C447C;}
+        .alerte-succes{background:#EAF3DE;color:#3B6D11;border:1px solid #97C459;
+                       border-radius:9px;padding:14px 18px;font-size:14px;
+                       margin-bottom:16px;text-align:center;}
+        .alerte-erreur{background:#FCEBEB;color:#A32D2D;border:1px solid #F09595;
+                       border-radius:9px;padding:14px 18px;font-size:14px;
+                       margin-bottom:16px;text-align:center;}
+        .qr-zone{background:#f9fafb;border:2px dashed #e0e0e0;border-radius:12px;
+                 padding:32px;text-align:center;color:#aaa;margin-bottom:16px;}
+        .qr-icon{font-size:48px;margin-bottom:8px;}
+        .qr-texte{font-size:13px;}
+        .back{font-size:13px;color:#185FA5;text-decoration:none;
+              display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="content">
+
+        <a href="/chauffeur/dashboard" class="back">← Retour</a>
+        <div class="page-title">Valider une réservation</div>
+
+        <!-- Résultat succès -->
+        <div class="alerte-succes" th:if="${succes}" th:text="${succes}"></div>
+
+        <!-- Résultat erreur -->
+        <div class="alerte-erreur" th:if="${erreur}" th:text="${erreur}"></div>
+
+        <!-- Zone QR (visuelle uniquement) -->
+        <div class="card">
+            <div class="card-title">Scanner un QR code</div>
+            <div class="qr-zone">
+                <div class="qr-icon">📷</div>
+                <div class="qr-texte">
+                    Pointez la caméra vers le QR code du voyageur
+                </div>
+            </div>
+        </div>
+
+        <!-- Saisie manuelle du code -->
+        <div class="card">
+            <div class="card-title">Ou saisir le code manuellement</div>
+            <form th:action="@{/chauffeur/validation}" method="post">
+                <input type="text" name="codeTexte" class="form-control"
+                       placeholder="EX: A1B2C3D4"
+                       maxlength="8"
+                       autocomplete="off"
+                       autofocus>
+                <button type="submit" class="btn-valider">
+                    ✓ Valider la réservation
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

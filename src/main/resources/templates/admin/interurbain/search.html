@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Recherche de voyages</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
+    <style>
+        body{font-family:sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .content{flex:1;padding:32px;max-width:800px;margin:0 auto;width:100%;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:6px;}
+        .page-sub{font-size:13px;color:#888;margin-bottom:24px;}
+        .search-card{background:white;border:1px solid #e5e7eb;border-radius:14px;padding:24px;margin-bottom:24px;}
+        .form-row{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;}
+        .form-label{font-size:12px;color:#666;margin-bottom:5px;display:block;}
+        .form-select{width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;}
+        .btn-search{background:#185FA5;color:white;border:none;padding:10px 24px;border-radius:8px;font-size:14px;cursor:pointer;white-space:nowrap;}
+        .result-card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:12px;}
+        .result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+        .route{display:flex;align-items:center;gap:10px;}
+        .city{background:#1a1a2e;color:white;padding:6px 14px;border-radius:7px;font-size:14px;font-weight:600;}
+        .arrow{font-size:18px;color:#aaa;}
+        .prix{font-size:22px;font-weight:700;color:#185FA5;}
+        .prix-label{font-size:11px;color:#888;}
+        .horaires-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+        .horaire-chip{border:1px solid #e5e7eb;border-radius:8px;padding:10px 14px;text-align:center;cursor:pointer;}
+        .horaire-chip:hover{border-color:#185FA5;background:#E6F1FB;}
+        .h-depart{font-size:15px;font-weight:700;color:#1a1a2e;}
+        .h-arrivee{font-size:12px;color:#888;}
+        .h-jours{font-size:11px;color:#185FA5;margin-top:3px;}
+        .etapes-row{display:flex;align-items:center;gap:6px;margin-top:14px;flex-wrap:wrap;}
+        .etape-point{display:flex;flex-direction:column;align-items:center;}
+        .etape-dot{width:10px;height:10px;border-radius:50%;background:#185FA5;margin-bottom:3px;}
+        .etape-name{font-size:10px;color:#555;text-align:center;}
+        .etape-line{height:2px;background:#e0e0e0;flex:1;min-width:20px;}
+        .no-result{text-align:center;padding:48px;color:#aaa;}
+        .no-result .icon{font-size:40px;margin-bottom:12px;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="content">
+        <div class="page-title">Recherche de voyages</div>
+        <div class="page-sub">Trouvez votre trajet interurbain en Mauritanie</div>
+
+        <!-- Formulaire de recherche -->
+        <div class="search-card">
+            <form th:action="@{/interurbain/search}" method="get">
+                <div class="form-row">
+                    <div>
+                        <label class="form-label">Ville de départ</label>
+                        <select name="villeDepart" class="form-select">
+                            <option value="">-- Départ --</option>
+                            <option th:each="v : ${villes}" th:value="${v}" th:text="${v}"
+                                    th:selected="${v == villeDepart}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label">Ville d'arrivée</label>
+                        <select name="villeArrivee" class="form-select">
+                            <option value="">-- Arrivée --</option>
+                            <option th:each="v : ${villes}" th:value="${v}" th:text="${v}"
+                                    th:selected="${v == villeArrivee}"></option>
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn-search">Rechercher</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Résultats -->
+        <div th:if="${resultats != null}">
+            <div th:if="${#lists.isEmpty(resultats)}" class="no-result">
+                <div class="icon">🚍</div>
+                <div style="font-size:15px;font-weight:500;margin-bottom:6px;">Aucun trajet trouvé</div>
+                <div style="font-size:13px;">Essayez une autre combinaison de villes.</div>
+            </div>
+
+            <div th:each="l : ${resultats}" class="result-card">
+                <div class="result-header">
+                    <div class="route">
+                        <span class="city" th:text="${l.villeDepart}"></span>
+                        <span class="arrow">→</span>
+                        <span class="city" th:text="${l.villeArrivee}"></span>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="prix" th:text="${l.prixBase + ' MRU'}"></div>
+                        <div class="prix-label">à partir de</div>
+                    </div>
+                </div>
+
+                <div style="font-size:12px;color:#888;margin-bottom:12px;"
+                     th:text="${l.distanceKm + ' km · ' + l.nom}"></div>
+
+                <!-- Horaires disponibles -->
+                <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px;">
+                    Horaires disponibles :
+                </div>
+                <div class="horaires-grid">
+                    <div th:each="h : ${l.horaires}" class="horaire-chip">
+                        <div class="h-depart" th:text="${h.heureDepart}"></div>
+                        <div class="h-arrivee" th:text="${'→ ' + h.heureArrivee}"></div>
+                        <div class="h-jours" th:text="${h.jours}"></div>
+                        <div style="font-size:12px;font-weight:600;color:#185FA5;margin-top:4px;"
+                             th:text="${h.prix + ' MRU'}"></div>
+                    </div>
+                </div>
+
+                <!-- Étapes -->
+                <div th:if="${l.etapes != null and !#lists.isEmpty(l.etapes)}"
+                     class="etapes-row" style="margin-top:16px;">
+                    <div th:each="e, stat : ${l.etapes}" style="display:flex;align-items:center;gap:6px;">
+                        <div class="etape-point">
+                            <div class="etape-dot"></div>
+                            <div class="etape-name" th:text="${e.nomVille}"></div>
+                        </div>
+                        <div class="etape-line" th:unless="${stat.last}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
