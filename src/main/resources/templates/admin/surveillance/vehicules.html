@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Véhicules</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .main{display:flex;flex:1;}
+        .content{flex:1;padding:28px;overflow:auto;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:24px;}
+        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:20px;}
+        .tbl{width:100%;border-collapse:collapse;font-size:13px;}
+        .tbl th{text-align:left;padding:9px 14px;color:#888;font-weight:500;font-size:12px;border-bottom:1px solid #f0f0f0;}
+        .tbl td{padding:12px 14px;border-bottom:1px solid #f9f9f9;color:#333;vertical-align:middle;}
+        .tbl tr:last-child td{border-bottom:none;}
+        .tbl tr:hover td{background:#fafafa;}
+        .badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;}
+        .s-service{background:#EAF3DE;color:#3B6D11;}
+        .s-maint{background:#FAEEDA;color:#633806;}
+        .s-hors{background:#FCEBEB;color:#A32D2D;}
+        .empty{text-align:center;padding:40px;color:#aaa;font-size:14px;}
+        .sidebar-link:hover{background:rgba(255,255,255,0.08);color:white;}
+        .sidebar-section-label{font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin:0 0 8px 10px;white-space:nowrap;}
+        .sidebar-icon{font-size:17px;flex-shrink:0;width:22px;text-align:center;}
+        .sidebar-divider{height:1px;background:rgba(255,255,255,0.06);margin:14px 0;}
+        #sidebar.collapsed{width:60px;}
+        #sidebar.collapsed .sidebar-text,#sidebar.collapsed .sidebar-section-label{opacity:0;pointer-events:none;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="main">
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div class="content">
+
+            <div class="page-title">Surveillance des véhicules</div>
+
+            <div class="card">
+                <table class="tbl" th:if="${not #lists.isEmpty(vehicules)}">
+                    <thead>
+                    <tr>
+                        <th>Matricule</th><th>Marque</th><th>Capacité</th>
+                        <th>Places dispo.</th><th>Statut</th>
+                        <th>Chauffeur</th><th>Position GPS</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="v : ${vehicules}">
+                        <td style="font-weight:600;" th:text="${v.matricule}"></td>
+                        <td th:text="${v.marque != null ? v.marque : '—'}"></td>
+                        <td th:text="${v.capacite}"></td>
+                        <td th:text="${v.placesDisponibles}"></td>
+                        <td>
+                            <span th:switch="${v.statut}">
+                                <span th:case="'EN_SERVICE'"     class="badge s-service">En service</span>
+                                <span th:case="'EN_MAINTENANCE'" class="badge s-maint">Maintenance</span>
+                                <span th:case="'HORS_SERVICE'"   class="badge s-hors">Hors service</span>
+                                <span th:case="*" class="badge s-maint" th:text="${v.statut}"></span>
+                            </span>
+                        </td>
+                        <td th:text="${v.chauffeur != null ? v.chauffeur.nomComplet : 'Non assigné'}"></td>
+                        <td th:text="${v.latitudeActuelle != null and v.longitudeActuelle != null
+                                       ? v.latitudeActuelle + ', ' + v.longitudeActuelle
+                                       : '—'}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="empty" th:if="${#lists.isEmpty(vehicules)}">
+                    Aucun véhicule enregistré.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

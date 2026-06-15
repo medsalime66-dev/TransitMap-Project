@@ -16,19 +16,24 @@ public class AdminSurveillanceController {
     private final ReservationRepository reservationRepository;
     private final AdminDemandeService adminDemandeService;
     private final LigneInterurbaineRepository ligneInterurbaineRepository;
+    private final VilleEtapeRepository villeEtapeRepository;
+    private final VehiculeRepository vehiculeRepository;
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         model.addAttribute("totalLignes", ligneInterurbaineRepository.count());
+        model.addAttribute("totalArrets", villeEtapeRepository.count());
+        model.addAttribute("totalVehicules", vehiculeRepository.count());
         model.addAttribute("totalUsers", userRepository.count());
-        model.addAttribute("demandesEnAttente", adminDemandeService.trouverEnAttente());
         model.addAttribute("totalReservations", reservationRepository.count());
+        model.addAttribute("demandesEnAttente", adminDemandeService.trouverEnAttente());
         model.addAttribute("trajetsAujourdhui", java.util.List.of());
         return "admin/dashboard";
     }
 
     @GetMapping("/surveillance/vehicules")
     public String vehicules(Model model) {
+        model.addAttribute("vehicules", vehiculeRepository.findAll());
         return "admin/surveillance/vehicules";
     }
 
@@ -50,17 +55,12 @@ public class AdminSurveillanceController {
         model.addAttribute("demandes", demandes);
         model.addAttribute("trajetsAujourdhui", java.util.List.of());
         model.addAttribute("totalLignes", ligneInterurbaineRepository.count());
+        model.addAttribute("totalVehicules", vehiculeRepository.count());
         model.addAttribute("demandesEnAttente",
                 demandes.stream()
                         .filter(d -> d.getStatut() != null &&
                                 d.getStatut() == com.transitmap.entity.DemandeInscription.StatutDemande.EN_ATTENTE)
                         .count());
         return "admin/activite";
-    }
-
-    @GetMapping("/demandes")
-    public String demandes(Model model) {
-        model.addAttribute("demandes", adminDemandeService.trouverToutes());
-        return "admin/demandes";
     }
 }

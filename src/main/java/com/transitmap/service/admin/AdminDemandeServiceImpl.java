@@ -34,30 +34,25 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
     @Transactional(readOnly = true)
     public List<DemandeInscriptionDto> trouverEnAttente() {
         return demandeRepository
-                .findByStatutOrderByDateCreationDesc(
-                        StatutDemande.EN_ATTENTE)
+                .findByStatutOrderByDateCreationDesc(StatutDemande.EN_ATTENTE)
                 .stream().map(this::mapper).toList();
     }
 
     @Override
     @Transactional
-    public DemandeInscriptionDto approuver(Long id,
-                                            String commentaire) {
+    public DemandeInscriptionDto approuver(Long id, String commentaire) {
         DemandeInscription demande = trouverDemande(id);
 
         if (demande.getStatut() != StatutDemande.EN_ATTENTE) {
-            throw new RuntimeException(
-                    "Cette demande a déjà été traitée");
+            throw new RuntimeException("Cette demande a déjà été traitée");
         }
 
         Role roleAgent = roleRepository.findByName("AGENT")
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Rôle AGENT introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Rôle AGENT introuvable"));
 
         User agent = User.builder()
                 .username(demande.getEmail())
-                .password(passwordEncoder.encode(
-                        demande.getMotDePasseInitial()))
+                .password(passwordEncoder.encode(demande.getMotDePasseInitial()))
                 .enabled(true)
                 .role(roleAgent)
                 .build();
@@ -86,24 +81,21 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
 
     @Override
     @Transactional
-    public DemandeInscriptionDto rejeter(Long id,
-                                          String commentaire) {
+    public DemandeInscriptionDto rejeter(Long id, String commentaire) {
         DemandeInscription demande = trouverDemande(id);
 
         if (demande.getStatut() != StatutDemande.EN_ATTENTE) {
-            throw new RuntimeException(
-                    "Cette demande a déjà été traitée");
+            throw new RuntimeException("Cette demande a déjà été traitée");
         }
 
-        // Créer compte AGENT temporaire pour reconnexion
-        if (userRepository.findByUsername(demande.getEmail())
-                .isEmpty()) {
+        // Créer un compte AGENT temporaire pour permettre la reconnexion
+        if (userRepository.findByUsername(demande.getEmail()).isEmpty()) {
             Role roleAgent = roleRepository.findByName("AGENT")
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Rôle AGENT introuvable"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Rôle AGENT introuvable"));
             userRepository.save(User.builder()
                     .username(demande.getEmail())
-                    .password(demande.getMotDePasseInitial())
+                    // ✅ Mot de passe CHIFFRÉ (corrigé)
+                    .password(passwordEncoder.encode(demande.getMotDePasseInitial()))
                     .enabled(true)
                     .role(roleAgent)
                     .build());
@@ -123,8 +115,7 @@ public class AdminDemandeServiceImpl implements AdminDemandeService {
 
     private DemandeInscription trouverDemande(Long id) {
         return demandeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Demande introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Demande introuvable"));
     }
 
     private DemandeInscriptionDto mapper(DemandeInscription d) {

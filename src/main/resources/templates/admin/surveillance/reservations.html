@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Réservations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .main{display:flex;flex:1;}
+        .content{flex:1;padding:28px;overflow:auto;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:24px;}
+        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:20px;}
+        .tbl{width:100%;border-collapse:collapse;font-size:13px;}
+        .tbl th{text-align:left;padding:9px 14px;color:#888;font-weight:500;font-size:12px;border-bottom:1px solid #f0f0f0;}
+        .tbl td{padding:12px 14px;border-bottom:1px solid #f9f9f9;color:#333;vertical-align:middle;}
+        .tbl tr:last-child td{border-bottom:none;}
+        .tbl tr:hover td{background:#fafafa;}
+        .badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:12px;font-weight:500;}
+        .s-attente{background:#FAEEDA;color:#633806;}
+        .s-confirme{background:#EAF3DE;color:#3B6D11;}
+        .s-utilise{background:#E6F1FB;color:#185FA5;}
+        .s-annule{background:#FCEBEB;color:#A32D2D;}
+        .code{font-family:monospace;font-weight:600;color:#185FA5;}
+        .empty{text-align:center;padding:40px;color:#aaa;font-size:14px;}
+        .sidebar-link:hover{background:rgba(255,255,255,0.08);color:white;}
+        .sidebar-section-label{font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin:0 0 8px 10px;white-space:nowrap;}
+        .sidebar-icon{font-size:17px;flex-shrink:0;width:22px;text-align:center;}
+        .sidebar-divider{height:1px;background:rgba(255,255,255,0.06);margin:14px 0;}
+        #sidebar.collapsed{width:60px;}
+        #sidebar.collapsed .sidebar-text,#sidebar.collapsed .sidebar-section-label{opacity:0;pointer-events:none;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="main">
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div class="content">
+
+            <div class="page-title">Surveillance des réservations</div>
+
+            <div class="card">
+                <table class="tbl" th:if="${not #lists.isEmpty(reservations)}">
+                    <thead>
+                    <tr>
+                        <th>#</th><th>Voyageur</th><th>Ligne</th><th>Trajet</th>
+                        <th>Date</th><th>Montant</th><th>Paiement</th>
+                        <th>Statut</th><th>Code</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${reservations}">
+                        <td th:text="${r.id}"></td>
+                        <td th:text="${r.voyageur != null ? r.voyageur.username : '—'}"></td>
+                        <td th:text="${r.ligne != null ? r.ligne.nom : '—'}"></td>
+                        <td th:text="${(r.arretDepart != null ? r.arretDepart.nomVille : '?')
+                                       + ' → ' +
+                                       (r.arretArrivee != null ? r.arretArrivee.nomVille : '?')}"></td>
+                        <td th:text="${r.dateTrajet}"></td>
+                        <td th:text="${r.montant != null ? r.montant + ' MRU' : '—'}"></td>
+                        <td th:text="${r.typePaiement}"></td>
+                        <td>
+                            <span th:switch="${r.statut.name()}">
+                                <span th:case="'EN_ATTENTE'" class="badge s-attente">En attente</span>
+                                <span th:case="'CONFIRME'"   class="badge s-confirme">Confirmé</span>
+                                <span th:case="'UTILISE'"    class="badge s-utilise">Utilisé</span>
+                                <span th:case="'ANNULE'"     class="badge s-annule">Annulé</span>
+                            </span>
+                        </td>
+                        <td><span class="code" th:text="${r.codeTexte != null ? r.codeTexte : '—'}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <div class="empty" th:if="${#lists.isEmpty(reservations)}">
+                    Aucune réservation enregistrée.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

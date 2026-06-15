@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier un véhicule</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .main{display:flex;flex:1;}
+        .content{flex:1;padding:28px;overflow:auto;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:24px;}
+        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin-bottom:18px;}
+        .card-title{font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:16px;}
+        .sidebar-link:hover{background:rgba(255,255,255,0.08);color:white;}
+        .sidebar-section-label{font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin:0 0 8px 10px;white-space:nowrap;}
+        .sidebar-icon{font-size:17px;flex-shrink:0;width:22px;text-align:center;}
+        .sidebar-divider{height:1px;background:rgba(255,255,255,0.06);margin:14px 0;}
+        #sidebar.collapsed{width:60px;}
+        #sidebar.collapsed .sidebar-text,#sidebar.collapsed .sidebar-section-label{opacity:0;pointer-events:none;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="main">
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div class="content">
+
+            <a href="/agent/vehicules" class="back">← Retour aux véhicules</a>
+            <div class="page-title">Modifier le véhicule</div>
+
+            <!-- Informations du véhicule -->
+            <div class="card form-card">
+                <form th:action="@{/agent/vehicules/modifier/{id}(id=${vehicule.id})}"
+                      th:object="${vehicule}" method="post">
+
+                    <span class="section-label">Informations véhicule</span>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Matricule *</label>
+                            <input type="text" th:field="*{matricule}" class="form-control">
+                            <div class="text-danger" th:errors="*{matricule}"></div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Marque / Modèle</label>
+                            <input type="text" th:field="*{marque}" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-4">
+                            <label class="form-label">Capacité *</label>
+                            <input type="number" th:field="*{capacite}"
+                                   class="form-control" min="1">
+                            <div class="text-danger" th:errors="*{capacite}"></div>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Année</label>
+                            <input type="number" th:field="*{annee}" class="form-control">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Statut *</label>
+                            <select th:field="*{statut}" class="form-select">
+                                <option value="EN_SERVICE">En service</option>
+                                <option value="EN_MAINTENANCE">En maintenance</option>
+                                <option value="HORS_SERVICE">Hors service</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        Enregistrer les modifications
+                    </button>
+                    <a href="/agent/vehicules" class="btn-cancel">Annuler</a>
+                </form>
+            </div>
+
+            <!-- Assignation du chauffeur (action séparée) -->
+            <div class="card">
+                <div class="card-title">Chauffeur assigné</div>
+                <form th:action="@{/agent/vehicules/{id}/assigner-chauffeur(id=${vehicule.id})}"
+                      method="post" class="row g-3 align-items-end">
+                    <div class="col-8">
+                        <label class="form-label">Chauffeur</label>
+                        <select name="chauffeurId" class="form-select">
+                            <option value="">-- Aucun chauffeur --</option>
+                            <option th:each="c : ${chauffeurs}"
+                                    th:value="${c.id}"
+                                    th:text="${c.nomComplet}"
+                                    th:selected="${vehicule.chauffeurId != null
+                                                   and c.id == vehicule.chauffeurId}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <button type="submit" class="btn-submit">Assigner</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
