@@ -56,8 +56,7 @@
                     <thead>
                         <tr>
                             <th>Route</th>
-                            <th>Distance</th>
-                            <th>Prix de base</th>
+                            <th>Description</th>
                             <th>Départs / jour</th>
                             <th>Actions</th>
                         </tr>
@@ -72,8 +71,7 @@
                                 </div>
                                 <div style="font-size:11px;color:#888;margin-top:3px;" th:text="${l.nom}"></div>
                             </td>
-                            <td th:text="${l.distanceKm + ' km'}"></td>
-                            <td style="font-weight:600;color:#185FA5;" th:text="${l.prixBase + ' MRU'}"></td>
+                            <td th:text="${l.description ?: '—'}"></td>
                             <td>
                                 <span th:if="${l.horaires != null}"
                                       th:text="${#lists.size(l.horaires) + ' départ(s)'}"></span>

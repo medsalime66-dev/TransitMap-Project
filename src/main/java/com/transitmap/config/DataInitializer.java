@@ -3,6 +3,8 @@ package com.transitmap.config;
 import com.transitmap.entity.*;
 import com.transitmap.entity.Entreprise.TypeService;
 import com.transitmap.entity.DemandeInscription.StatutDemande;
+import com.transitmap.entity.Reservation.StatutReservation;
+import com.transitmap.entity.Reservation.TypePaiement;
 import com.transitmap.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -14,9 +16,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
- * Initialisation des données de démonstration au démarrage.
- * Crée les rôles, utilisateurs, entreprises, lignes, arrêts,
- * véhicules, chauffeurs et trajets de base.
+ * Initialisation complète des données de démonstration.
+ * Idempotent : peut être relancé sans créer de doublons.
  */
 @Component
 @RequiredArgsConstructor
@@ -24,443 +25,264 @@ public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
-    private final LigneRepository ligneRepository;
-    private final ArretRepository arretRepository;
-    private final VehiculeRepository vehiculeRepository;
-    private final TrajetRepository trajetRepository;
-    private final ChauffeurRepository chauffeurRepository;
     private final EntrepriseRepository entrepriseRepository;
     private final DemandeInscriptionRepository demandeRepository;
     private final LigneInterurbaineRepository ligneInterurbaineRepository;
     private final VilleEtapeRepository villeEtapeRepository;
     private final HoraireInterurbaineRepository horaireRepository;
+    private final PrixSegmentRepository prixSegmentRepository;
+    private final ChauffeurRepository chauffeurRepository;
+    private final VehiculeRepository vehiculeRepository;
+    private final ReservationRepository reservationRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
 
         // ===================== RÔLES =====================
-        Role roleAdmin    = creerRole("ADMIN");
-        Role roleAgent    = creerRole("AGENT");
-        Role roleVoyageur = creerRole("VOYAGEUR");
+        Role roleAdmin     = creerRole("ADMIN");
+        Role roleAgent     = creerRole("AGENT");
+        Role roleVoyageur  = creerRole("VOYAGEUR");
         Role roleChauffeur = creerRole("CHAUFFEUR");
 
         // ===================== UTILISATEURS =====================
-        User admin = creerUtilisateur(
-                "admin", "admin123", roleAdmin);
-
-        User agent1 = creerUtilisateur(
-                "agent1@transitmap.mr", "agent123", roleAgent);
-
-        User agent2 = creerUtilisateur(
-                "agent2@transitmap.mr", "agent123", roleAgent);
-
-        creerUtilisateur(
-                "voyageur1@transitmap.mr", "voyageur123", roleVoyageur);
-
-        creerUtilisateur(
-                "voyageur2@transitmap.mr", "voyageur123", roleVoyageur);
+        creerUtilisateur("admin", "admin123", roleAdmin);
+        User agent1     = creerUtilisateur("agent1@transitmap.mr", "agent123", roleAgent);
+        User agent2     = creerUtilisateur("agent2@transitmap.mr", "agent123", roleAgent);
+        User voyageur1  = creerUtilisateur("voyageur1@transitmap.mr", "voyageur123", roleVoyageur);
+        User voyageur2  = creerUtilisateur("voyageur2@transitmap.mr", "voyageur123", roleVoyageur);
 
         // ===================== ENTREPRISES =====================
-        if (!entrepriseRepository.findByAgent(agent1).isPresent()) {
+        if (entrepriseRepository.findByAgent(agent1).isEmpty()) {
             entrepriseRepository.save(Entreprise.builder()
                     .nom("Transport Nord Mauritanie")
                     .numeroCommercial("TRN-2024-001")
                     .adresse("Nouakchott, Mauritanie")
-                    .typeService(TypeService.LES_DEUX)
+                    .typeService(TypeService.INTERURBAIN)
                     .codeBankily("013274")
                     .codeMasrvi("MSR-7821")
                     .codeSedad("SDD-4412")
                     .agent(agent1)
                     .build());
         }
-
-        if (!entrepriseRepository.findByAgent(agent2).isPresent()) {
+        if (entrepriseRepository.findByAgent(agent2).isEmpty()) {
             entrepriseRepository.save(Entreprise.builder()
                     .nom("Société Sud Transport")
                     .numeroCommercial("SST-2024-002")
                     .adresse("Nouakchott, Mauritanie")
-                    .typeService(TypeService.URBAIN)
+                    .typeService(TypeService.INTERURBAIN)
                     .codeBankily("027431")
                     .codeClick("CLK-9934")
                     .agent(agent2)
                     .build());
         }
 
-        // ===================== CHAUFFEURS =====================
-        if (chauffeurRepository.count() == 0) {
-            Ligne ligneNordExist = ligneRepository.findAll()
-                    .stream()
-                    .filter(l -> l.getNumero().equals("L01"))
-                    .findFirst().orElse(null);
-            Ligne ligneSudExist = ligneRepository.findAll()
-                    .stream()
-                    .filter(l -> l.getNumero().equals("L02"))
-                    .findFirst().orElse(null);
-
-            if (ligneNordExist != null) {
-                User uc1 = creerUtilisateur(
-                        "chauffeur1@transitmap.mr",
-                        "chauffeur123", roleChauffeur);
-                User uc2 = creerUtilisateur(
-                        "chauffeur2@transitmap.mr",
-                        "chauffeur123", roleChauffeur);
-
-                chauffeurRepository.save(Chauffeur.builder()
-                        .nomComplet("Mohamed Ould Taleb")
-                        .numeroPermis("MR-2020-001")
-                        .telephone("22345678")
-                        .email("chauffeur1@transitmap.mr")
-                        .user(uc1).agent(agent1)
-                        .ligne(ligneNordExist)
-                        .build());
-
-                chauffeurRepository.save(Chauffeur.builder()
-                        .nomComplet("Ahmed Salem Ould Bah")
-                        .numeroPermis("MR-2021-002")
-                        .telephone("33456789")
-                        .email("chauffeur2@transitmap.mr")
-                        .user(uc2).agent(agent1)
-                        .ligne(ligneSudExist)
-                        .build());
-            }
-        }
-
-        // ===================== LIGNES =====================
-        if (ligneRepository.count() > 0) return;
-
-        Ligne ligneNord = ligneRepository.save(Ligne.builder()
-                .numero("L01")
-                .nom("Ligne Nord")
-                .description("Centre-ville → Quartier Nord")
-                .build());
-
-        Ligne ligneSud = ligneRepository.save(Ligne.builder()
-                .numero("L02")
-                .nom("Ligne Sud")
-                .description("Gare centrale → Zone Sud")
-                .build());
-
-        Ligne ligneCentre = ligneRepository.save(Ligne.builder()
-                .numero("L03")
-                .nom("Ligne Centre")
-                .description("Marché central → Université")
-                .build());
-
-        Ligne ligneEst = ligneRepository.save(Ligne.builder()
-                .numero("L04")
-                .nom("Ligne Est")
-                .description("Port → Zone industrielle Est")
-                .build());
-
-        // ===================== ARRÊTS =====================
-
-        // Ligne Nord
-        arretRepository.save(Arret.builder().nom("Gare Centrale")
-                .latitude(18.0735).longitude(-15.9582)
-                .ordre(1).ligne(ligneNord).build());
-        arretRepository.save(Arret.builder().nom("Place de l'Indépendance")
-                .latitude(18.0790).longitude(-15.9650)
-                .ordre(2).ligne(ligneNord).build());
-        arretRepository.save(Arret.builder().nom("Marché Capitale")
-                .latitude(18.0850).longitude(-15.9700)
-                .ordre(3).ligne(ligneNord).build());
-        arretRepository.save(Arret.builder().nom("Quartier Nord")
-                .latitude(18.0950).longitude(-15.9750)
-                .ordre(4).ligne(ligneNord).build());
-
-        // Ligne Sud
-        arretRepository.save(Arret.builder().nom("Gare Centrale")
-                .latitude(18.0735).longitude(-15.9582)
-                .ordre(1).ligne(ligneSud).build());
-        arretRepository.save(Arret.builder().nom("Avenue Gamal Nasser")
-                .latitude(18.0680).longitude(-15.9600)
-                .ordre(2).ligne(ligneSud).build());
-        arretRepository.save(Arret.builder().nom("Carrefour Sud")
-                .latitude(18.0620).longitude(-15.9550)
-                .ordre(3).ligne(ligneSud).build());
-        arretRepository.save(Arret.builder().nom("Zone Sud")
-                .latitude(18.0550).longitude(-15.9500)
-                .ordre(4).ligne(ligneSud).build());
-
-        // Ligne Centre
-        arretRepository.save(Arret.builder().nom("Marché Central")
-                .latitude(18.0800).longitude(-15.9620)
-                .ordre(1).ligne(ligneCentre).build());
-        arretRepository.save(Arret.builder().nom("Hôpital National")
-                .latitude(18.0820).longitude(-15.9560)
-                .ordre(2).ligne(ligneCentre).build());
-        arretRepository.save(Arret.builder().nom("Ministères")
-                .latitude(18.0840).longitude(-15.9510)
-                .ordre(3).ligne(ligneCentre).build());
-        arretRepository.save(Arret.builder().nom("Université")
-                .latitude(18.0870).longitude(-15.9460)
-                .ordre(4).ligne(ligneCentre).build());
-
-        // Ligne Est
-        arretRepository.save(Arret.builder().nom("Port de Nouakchott")
-                .latitude(18.0700).longitude(-16.0100)
-                .ordre(1).ligne(ligneEst).build());
-        arretRepository.save(Arret.builder().nom("Avenue de l'Indépendance")
-                .latitude(18.0720).longitude(-15.9900)
-                .ordre(2).ligne(ligneEst).build());
-        arretRepository.save(Arret.builder().nom("Rond-point Est")
-                .latitude(18.0740).longitude(-15.9700)
-                .ordre(3).ligne(ligneEst).build());
-        arretRepository.save(Arret.builder().nom("Zone Industrielle")
-                .latitude(18.0760).longitude(-15.9400)
-                .ordre(4).ligne(ligneEst).build());
-
-        // ===================== CHAUFFEURS (première fois) =====================
-        User uc1 = creerUtilisateur(
-                "chauffeur1@transitmap.mr", "chauffeur123", roleChauffeur);
-        User uc2 = creerUtilisateur(
-                "chauffeur2@transitmap.mr", "chauffeur123", roleChauffeur);
-
-        Chauffeur chauffeur1 = chauffeurRepository.save(
-                Chauffeur.builder()
-                .nomComplet("Mohamed Ould Taleb")
-                .numeroPermis("MR-2020-001")
-                .telephone("22345678")
-                .email("chauffeur1@transitmap.mr")
-                .user(uc1).agent(agent1).ligne(ligneNord)
-                .build());
-
-        Chauffeur chauffeur2 = chauffeurRepository.save(
-                Chauffeur.builder()
-                .nomComplet("Ahmed Salem Ould Bah")
-                .numeroPermis("MR-2021-002")
-                .telephone("33456789")
-                .email("chauffeur2@transitmap.mr")
-                .user(uc2).agent(agent1).ligne(ligneSud)
-                .build());
-
-        // ===================== VÉHICULES =====================
-        Vehicule vehicule1 = vehiculeRepository.save(
-                Vehicule.builder()
-                .matricule("NKT-001-A").marque("Toyota Coaster")
-                .capacite(30).placesDisponibles(28)
-                .annee(2020).statut("EN_SERVICE")
-                .latitudeActuelle(18.0790).longitudeActuelle(-15.9650)
-                .ligne(ligneNord).chauffeur(chauffeur1).build());
-
-        Vehicule vehicule2 = vehiculeRepository.save(
-                Vehicule.builder()
-                .matricule("NKT-002-A").marque("Mercedes Sprinter")
-                .capacite(20).placesDisponibles(15)
-                .annee(2019).statut("EN_SERVICE")
-                .latitudeActuelle(18.0820).longitudeActuelle(-15.9700)
-                .ligne(ligneNord).chauffeur(null).build());
-
-        Vehicule vehicule3 = vehiculeRepository.save(
-                Vehicule.builder()
-                .matricule("NKT-003-B").marque("Toyota Hiace")
-                .capacite(15).placesDisponibles(10)
-                .annee(2021).statut("EN_SERVICE")
-                .latitudeActuelle(18.0650).longitudeActuelle(-15.9580)
-                .ligne(ligneSud).chauffeur(chauffeur2).build());
-
-        vehiculeRepository.save(Vehicule.builder()
-                .matricule("NKT-004-B").marque("Isuzu NQR")
-                .capacite(35).placesDisponibles(35)
-                .annee(2018).statut("EN_MAINTENANCE")
-                .ligne(ligneSud).chauffeur(null).build());
-
-        Vehicule vehicule5 = vehiculeRepository.save(
-                Vehicule.builder()
-                .matricule("NKT-005-C").marque("Toyota Coaster")
-                .capacite(30).placesDisponibles(30)
-                .annee(2022).statut("EN_SERVICE")
-                .latitudeActuelle(18.0830).longitudeActuelle(-15.9530)
-                .ligne(ligneCentre).chauffeur(null).build());
-
-        // ===================== TRAJETS =====================
-        LocalDate today    = LocalDate.now();
-        LocalDate tomorrow = today.plusDays(1);
-
-        trajetRepository.save(Trajet.builder()
-                .dateTrajet(today).heureDepart(LocalTime.of(7, 0))
-                .heureArrivee(LocalTime.of(8, 30)).statut("PLANIFIE")
-                .ligne(ligneNord).vehicule(vehicule1)
-                .chauffeur(chauffeur1).build());
-
-        trajetRepository.save(Trajet.builder()
-                .dateTrajet(today).heureDepart(LocalTime.of(9, 0))
-                .heureArrivee(LocalTime.of(10, 0)).statut("PLANIFIE")
-                .ligne(ligneCentre).vehicule(vehicule5)
-                .chauffeur(null).build());
-
-        trajetRepository.save(Trajet.builder()
-                .dateTrajet(today).heureDepart(LocalTime.of(11, 0))
-                .heureArrivee(LocalTime.of(12, 0)).statut("PLANIFIE")
-                .ligne(ligneSud).vehicule(vehicule3)
-                .chauffeur(chauffeur2).build());
-
-        trajetRepository.save(Trajet.builder()
-                .dateTrajet(today).heureDepart(LocalTime.of(14, 0))
-                .heureArrivee(LocalTime.of(15, 30)).statut("PLANIFIE")
-                .ligne(ligneNord).vehicule(vehicule2)
-                .chauffeur(null).build());
-
-        trajetRepository.save(Trajet.builder()
-                .dateTrajet(tomorrow).heureDepart(LocalTime.of(7, 0))
-                .heureArrivee(LocalTime.of(8, 30)).statut("PLANIFIE")
-                .ligne(ligneNord).vehicule(vehicule1)
-                .chauffeur(chauffeur1).build());
-
-        trajetRepository.save(Trajet.builder()
-                .dateTrajet(tomorrow).heureDepart(LocalTime.of(9, 0))
-                .heureArrivee(LocalTime.of(10, 15)).statut("PLANIFIE")
-                .ligne(ligneCentre).vehicule(vehicule5)
-                .chauffeur(null).build());
-
-        // ===================== LIGNES INTERURBAINES =====================
-        LigneInterurbaine nktNdb = ligneInterurbaineRepository.save(
-                LigneInterurbaine.builder()
-                .nom("Nouakchott — Nouadhibou Express")
-                .villeDepart("Nouakchott").villeArrivee("Nouadhibou")
-                .distanceKm(470.0).prixBase(3500.0)
-                .description("Ligne principale côtière").build());
-
-        LigneInterurbaine nktRosso = ligneInterurbaineRepository.save(
-                LigneInterurbaine.builder()
-                .nom("Nouakchott — Rosso")
-                .villeDepart("Nouakchott").villeArrivee("Rosso")
-                .distanceKm(200.0).prixBase(1500.0)
-                .description("Liaison vers le fleuve Sénégal").build());
-
-        LigneInterurbaine nktAtar = ligneInterurbaineRepository.save(
-                LigneInterurbaine.builder()
-                .nom("Nouakchott — Atar")
-                .villeDepart("Nouakchott").villeArrivee("Atar")
-                .distanceKm(450.0).prixBase(3000.0)
-                .description("Route de l'Adrar").build());
-
-        // Étapes NKT-NDB
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktNdb).nomVille("Nouakchott")
-                .latitude(18.0735).longitude(-15.9582)
-                .ordre(1).dureeDepuisDebut(0).build());
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktNdb).nomVille("Akjoujt")
-                .latitude(19.7455).longitude(-14.3847)
-                .ordre(2).dureeDepuisDebut(180).build());
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktNdb).nomVille("Nouadhibou")
-                .latitude(20.9310).longitude(-17.0347)
-                .ordre(3).dureeDepuisDebut(420).build());
-
-        // Horaires NKT-NDB
-        horaireRepository.save(HoraireInterurbain.builder()
-                .ligne(nktNdb).heureDepart(LocalTime.of(6, 0))
-                .heureArrivee(LocalTime.of(13, 0))
-                .jours("QUOTIDIEN").prix(3500.0).actif(true).build());
-        horaireRepository.save(HoraireInterurbain.builder()
-                .ligne(nktNdb).heureDepart(LocalTime.of(20, 0))
-                .heureArrivee(LocalTime.of(3, 0))
-                .jours("QUOTIDIEN").prix(3500.0).actif(true).build());
-
-        // Étapes NKT-Rosso
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktRosso).nomVille("Nouakchott")
-                .latitude(18.0735).longitude(-15.9582)
-                .ordre(1).dureeDepuisDebut(0).build());
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktRosso).nomVille("Boutilimit")
-                .latitude(17.5500).longitude(-14.6833)
-                .ordre(2).dureeDepuisDebut(90).build());
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktRosso).nomVille("Rosso")
-                .latitude(16.5133).longitude(-15.8050)
-                .ordre(3).dureeDepuisDebut(180).build());
-
-        // Horaires NKT-Rosso
-        horaireRepository.save(HoraireInterurbain.builder()
-                .ligne(nktRosso).heureDepart(LocalTime.of(7, 0))
-                .heureArrivee(LocalTime.of(10, 0))
-                .jours("QUOTIDIEN").prix(1500.0).actif(true).build());
-        horaireRepository.save(HoraireInterurbain.builder()
-                .ligne(nktRosso).heureDepart(LocalTime.of(14, 0))
-                .heureArrivee(LocalTime.of(17, 0))
-                .jours("QUOTIDIEN").prix(1500.0).actif(true).build());
-
-        // Étapes NKT-Atar
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktAtar).nomVille("Nouakchott")
-                .latitude(18.0735).longitude(-15.9582)
-                .ordre(1).dureeDepuisDebut(0).build());
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktAtar).nomVille("Akjoujt")
-                .latitude(19.7455).longitude(-14.3847)
-                .ordre(2).dureeDepuisDebut(150).build());
-        villeEtapeRepository.save(VilleEtape.builder()
-                .ligne(nktAtar).nomVille("Atar")
-                .latitude(20.5170).longitude(-13.0490)
-                .ordre(3).dureeDepuisDebut(390).build());
-
-        // Horaires NKT-Atar
-        horaireRepository.save(HoraireInterurbain.builder()
-                .ligne(nktAtar).heureDepart(LocalTime.of(5, 0))
-                .heureArrivee(LocalTime.of(11, 30))
-                .jours("LUNDI,MERCREDI,VENDREDI")
-                .prix(3000.0).actif(true).build());
-
         // ===================== DEMANDES D'INSCRIPTION =====================
         if (!demandeRepository.existsByEmail("demande1@transport.mr")) {
             demandeRepository.save(DemandeInscription.builder()
-                    .nomComplet("Fatima Mint Ahmed")
-                    .email("demande1@transport.mr")
-                    .telephone("44556677")
-                    .numeroCIN("MR-12345")
-                    .nomEntreprise("Transport Oasis SARL")
-                    .numeroCommercial("TO-2024-003")
-                    .adresse("Atar, Mauritanie")
-                    .typeService(TypeService.INTERURBAIN)
+                    .nomComplet("Fatima Mint Ahmed").email("demande1@transport.mr")
+                    .telephone("44556677").numeroCIN("MR-12345")
+                    .nomEntreprise("Transport Oasis SARL").numeroCommercial("TO-2024-003")
+                    .adresse("Atar, Mauritanie").typeService(TypeService.INTERURBAIN)
                     .description("Spécialisée dans les trajets Adrar")
-                    .motDePasseInitial("pass123")
-                    .codeBankily("098765")
+                    .motDePasseInitial("pass123").codeBankily("098765")
                     .statut(StatutDemande.EN_ATTENTE)
                     .dateCreation(LocalDateTime.now().minusDays(2))
                     .build());
         }
-
         if (!demandeRepository.existsByEmail("demande2@transport.mr")) {
             demandeRepository.save(DemandeInscription.builder()
-                    .nomComplet("Sidi Mohamed Ould Vall")
-                    .email("demande2@transport.mr")
-                    .telephone("55667788")
-                    .nomEntreprise("Ligne Express Mauritanie")
-                    .typeService(TypeService.URBAIN)
-                    .description("Transport urbain Nouakchott")
-                    .motDePasseInitial("pass456")
-                    .codeMasrvi("MSR-4567")
-                    .codeBankily("112233")
-                    .statut(StatutDemande.EN_ATTENTE)
-                    .dateCreation(LocalDateTime.now().minusHours(5))
+                    .nomComplet("Cheikh Ould Baba").email("demande2@transport.mr")
+                    .telephone("33221100").numeroCIN("MR-67890")
+                    .nomEntreprise("Sahel Voyages").numeroCommercial("SV-2024-004")
+                    .adresse("Kiffa, Mauritanie").typeService(TypeService.INTERURBAIN)
+                    .description("Desserte de l'Assaba")
+                    .motDePasseInitial("pass123").codeMasrvi("MSR-5500")
+                    .statut(StatutDemande.APPROUVEE)
+                    .dateCreation(LocalDateTime.now().minusDays(10))
+                    .dateTraitement(LocalDateTime.now().minusDays(9))
+                    .commentaireAdmin("Dossier complet, approuvé.")
                     .build());
         }
+        if (!demandeRepository.existsByEmail("demande3@transport.mr")) {
+            demandeRepository.save(DemandeInscription.builder()
+                    .nomComplet("Aminetou Mint Sidi").email("demande3@transport.mr")
+                    .telephone("22113344").numeroCIN("MR-24680")
+                    .nomEntreprise("Express Trarza").numeroCommercial("ET-2024-005")
+                    .adresse("Rosso, Mauritanie").typeService(TypeService.INTERURBAIN)
+                    .description("Demande incomplète")
+                    .motDePasseInitial("pass123").codeSedad("SDD-3300")
+                    .statut(StatutDemande.REJETEE)
+                    .dateCreation(LocalDateTime.now().minusDays(6))
+                    .dateTraitement(LocalDateTime.now().minusDays(5))
+                    .commentaireAdmin("Numéro commercial non vérifiable.")
+                    .build());
+        }
+
+        // ===================== DONNÉES MÉTIER (une seule fois) =====================
+        if (ligneInterurbaineRepository.count() > 0) return;
+
+        // --- Ligne 1 : Nouakchott — Nouadhibou ---
+        LigneInterurbaine nktNdb = ligneInterurbaineRepository.save(LigneInterurbaine.builder()
+                .nom("Nouakchott — Nouadhibou Express")
+                .villeDepart("Nouakchott").villeArrivee("Nouadhibou")
+                .description("Ligne principale côtière").build());
+
+        VilleEtape ndb_nkt = etape(nktNdb, "Nouakchott", 18.0735, -15.9582, 1, true,  false);
+        VilleEtape ndb_akj = etape(nktNdb, "Akjoujt",    19.7455, -14.3847, 2, false, false);
+        VilleEtape ndb_ndb = etape(nktNdb, "Nouadhibou", 20.9310, -17.0347, 3, false, true);
+
+        prix(nktNdb, ndb_nkt, ndb_akj, 1500.0);
+        prix(nktNdb, ndb_nkt, ndb_ndb, 3500.0);
+        prix(nktNdb, ndb_akj, ndb_ndb, 2200.0);
+
+        HoraireInterurbain h_ndb_matin = horaire(nktNdb, 6, 0, 13, 0, "QUOTIDIEN", 3500.0);
+        HoraireInterurbain h_ndb_soir  = horaire(nktNdb, 20, 0, 3, 0, "QUOTIDIEN", 3500.0);
+
+        // --- Ligne 2 : Nouakchott — Atar ---
+        LigneInterurbaine nktAtar = ligneInterurbaineRepository.save(LigneInterurbaine.builder()
+                .nom("Nouakchott — Atar")
+                .villeDepart("Nouakchott").villeArrivee("Atar")
+                .description("Route de l'Adrar").build());
+
+        VilleEtape atar_nkt = etape(nktAtar, "Nouakchott", 18.0735, -15.9582, 1, true,  false);
+        VilleEtape atar_akj = etape(nktAtar, "Akjoujt",    19.7455, -14.3847, 2, false, false);
+        VilleEtape atar_ata = etape(nktAtar, "Atar",       20.5170, -13.0490, 3, false, true);
+
+        prix(nktAtar, atar_nkt, atar_akj, 1200.0);
+        prix(nktAtar, atar_nkt, atar_ata, 3000.0);
+        prix(nktAtar, atar_akj, atar_ata, 2000.0);
+
+        HoraireInterurbain h_atar_1 = horaire(nktAtar, 5, 0, 11, 30, "LUNDI,MERCREDI,VENDREDI", 3000.0);
+        HoraireInterurbain h_atar_2 = horaire(nktAtar, 14, 0, 20, 30, "MARDI,JEUDI,SAMEDI", 3000.0);
+
+        // --- Ligne 3 : Nouakchott — Rosso ---
+        LigneInterurbaine nktRosso = ligneInterurbaineRepository.save(LigneInterurbaine.builder()
+                .nom("Nouakchott — Rosso")
+                .villeDepart("Nouakchott").villeArrivee("Rosso")
+                .description("Liaison vers le fleuve Sénégal").build());
+
+        VilleEtape rosso_nkt  = etape(nktRosso, "Nouakchott", 18.0735, -15.9582, 1, true,  false);
+        VilleEtape rosso_bout = etape(nktRosso, "Boutilimit", 17.5500, -14.6833, 2, false, false);
+        VilleEtape rosso_ros  = etape(nktRosso, "Rosso",      16.5133, -15.8050, 3, false, true);
+
+        prix(nktRosso, rosso_nkt, rosso_bout, 700.0);
+        prix(nktRosso, rosso_nkt, rosso_ros, 1500.0);
+        prix(nktRosso, rosso_bout, rosso_ros, 900.0);
+
+        HoraireInterurbain h_rosso_matin = horaire(nktRosso, 7, 0, 10, 0, "QUOTIDIEN", 1500.0);
+        HoraireInterurbain h_rosso_aprem = horaire(nktRosso, 14, 0, 17, 0, "QUOTIDIEN", 1500.0);
+        // Ligne 1 et 2 -> agent1 ;  Ligne 3 -> agent2
+        nktNdb.setCreateur(agent1);   ligneInterurbaineRepository.save(nktNdb);
+        nktAtar.setCreateur(agent1);  ligneInterurbaineRepository.save(nktAtar);
+        nktRosso.setCreateur(agent2); ligneInterurbaineRepository.save(nktRosso);
+        // ===================== CHAUFFEURS (+ comptes) =====================
+        Chauffeur ch1 = creerChauffeur("Mohamed Lemine Ould Cheikh", "PRM-001", "22001122",
+                "chauffeur1@transitmap.mr", "chauffeur123", agent1, roleChauffeur);
+        Chauffeur ch2 = creerChauffeur("Sidi Ahmed Ould Brahim", "PRM-002", "22003344",
+                "chauffeur2@transitmap.mr", "chauffeur123", agent1, roleChauffeur);
+        Chauffeur ch3 = creerChauffeur("Brahim Vall Ould Mohamed", "PRM-003", "22005566",
+                "chauffeur3@transitmap.mr", "chauffeur123", agent2, roleChauffeur);
+
+        // ===================== VÉHICULES =====================
+        creerVehicule("NKC-1234", "Mercedes Sprinter", 18, 2019, "EN_SERVICE",
+                19.7455, -14.3847, ch1);
+        creerVehicule("NKC-5678", "Toyota Coaster", 30, 2021, "DISPONIBLE",
+                18.0735, -15.9582, ch2);
+        creerVehicule("NDB-9012", "Higer Bus", 45, 2020, "MAINTENANCE",
+                20.9310, -17.0347, ch3);
+
+        // ===================== RÉSERVATIONS (démonstration) =====================
+        // voyageur1
+        seedReservation(voyageur1, nktNdb, ndb_nkt, ndb_ndb, h_ndb_matin,
+                LocalDate.now().plusDays(3), 3500.0, TypePaiement.BANKILY,
+                StatutReservation.CONFIRME, "NDB12345", "QR-RES-NDB-0001", 1);
+
+        seedReservation(voyageur1, nktAtar, atar_nkt, atar_ata, h_atar_1,
+                LocalDate.now().plusDays(5), 3000.0, TypePaiement.MASRVI,
+                StatutReservation.EN_ATTENTE, null, null, 0);
+
+        seedReservation(voyageur1, nktRosso, rosso_nkt, rosso_ros, h_rosso_matin,
+                LocalDate.now().minusDays(2), 1500.0, TypePaiement.BANKILY,
+                StatutReservation.UTILISE, "ROS98765", "QR-RES-ROS-0002", 4);
+
+        // voyageur2
+        seedReservation(voyageur2, nktNdb, ndb_nkt, ndb_akj, h_ndb_soir,
+                LocalDate.now().plusDays(1), 1500.0, TypePaiement.SEDAD,
+                StatutReservation.CONFIRME, "AKJ55667", "QR-RES-AKJ-0003", 1);
+
+        seedReservation(voyageur2, nktAtar, atar_nkt, atar_ata, h_atar_2,
+                LocalDate.now().plusDays(7), 3000.0, TypePaiement.CLICK,
+                StatutReservation.ANNULE, null, null, 3);
     }
 
-    // ===================== MÉTHODES UTILITAIRES =====================
+    // ============================ HELPERS ============================
 
-    /** Crée un rôle s'il n'existe pas encore */
     private Role creerRole(String nom) {
         return roleRepository.findByName(nom)
-                .orElseGet(() -> roleRepository.save(
-                        Role.builder().name(nom).build()));
+                .orElseGet(() -> roleRepository.save(Role.builder().name(nom).build()));
     }
 
-    /** Crée un utilisateur s'il n'existe pas encore */
-    private User creerUtilisateur(String username,
-                                   String motDePasse,
-                                   Role role) {
+    private User creerUtilisateur(String username, String motDePasse, Role role) {
         return userRepository.findByUsername(username)
-                .orElseGet(() -> userRepository.save(
-                        User.builder()
+                .orElseGet(() -> userRepository.save(User.builder()
                         .username(username)
                         .password(passwordEncoder.encode(motDePasse))
                         .enabled(true)
                         .role(role)
                         .build()));
+    }
+
+    private VilleEtape etape(LigneInterurbaine ligne, String nom, double lat, double lng,
+                             int ordre, boolean depart, boolean arrivee) {
+        return villeEtapeRepository.save(VilleEtape.builder()
+                .ligne(ligne).nomVille(nom).latitude(lat).longitude(lng)
+                .ordre(ordre).estDepart(depart).estArrivee(arrivee).build());
+    }
+
+    private void prix(LigneInterurbaine ligne, VilleEtape a, VilleEtape b, double montant) {
+        prixSegmentRepository.save(PrixSegment.builder()
+                .ligne(ligne).arretA(a).arretB(b).prix(montant).build());
+    }
+
+    private HoraireInterurbain horaire(LigneInterurbaine ligne, int hd, int md, int ha, int ma,
+                                       String jours, double prix) {
+        return horaireRepository.save(HoraireInterurbain.builder()
+                .ligne(ligne)
+                .heureDepart(LocalTime.of(hd, md))
+                .heureArrivee(LocalTime.of(ha, ma))
+                .jours(jours).prix(prix).actif(true).build());
+    }
+
+    private Chauffeur creerChauffeur(String nom, String permis, String tel, String email,
+                                     String motDePasse, User agent, Role roleChauffeur) {
+        User user = creerUtilisateur(email, motDePasse, roleChauffeur);
+        return chauffeurRepository.findByEmail(email).orElseGet(() ->
+                chauffeurRepository.save(Chauffeur.builder()
+                        .nomComplet(nom).numeroPermis(permis).telephone(tel).email(email)
+                        .user(user).agent(agent).build()));
+    }
+
+    private Vehicule creerVehicule(String matricule, String marque, int capacite, int annee,
+                                   String statut, Double lat, Double lng, Chauffeur chauffeur) {
+        return vehiculeRepository.findByMatricule(matricule).orElseGet(() ->
+                vehiculeRepository.save(Vehicule.builder()
+                        .matricule(matricule).marque(marque).capacite(capacite)
+                        .placesDisponibles(capacite).annee(annee).statut(statut)
+                        .latitudeActuelle(lat).longitudeActuelle(lng)
+                        .chauffeur(chauffeur).build()));
+    }
+
+    private void seedReservation(User voyageur, LigneInterurbaine ligne, VilleEtape dep,
+                                 VilleEtape arr, HoraireInterurbain horaire, LocalDate dateTrajet,
+                                 double montant, TypePaiement type, StatutReservation statut,
+                                 String codeTexte, String codeQR, int joursAvantReservation) {
+        reservationRepository.save(Reservation.builder()
+                .voyageur(voyageur).ligne(ligne).arretDepart(dep).arretArrivee(arr)
+                .horaire(horaire).dateTrajet(dateTrajet).montant(montant)
+                .typePaiement(type).statut(statut)
+                .codeTexte(codeTexte).codeQR(codeQR)
+                .dateReservation(LocalDateTime.now().minusDays(joursAvantReservation))
+                .build());
     }
 }

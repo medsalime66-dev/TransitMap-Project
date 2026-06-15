@@ -3,11 +3,11 @@ package com.transitmap.dto;
 import com.transitmap.entity.Reservation.StatutReservation;
 import com.transitmap.entity.Reservation.TypePaiement;
 import lombok.*;
-import java.time.LocalDateTime;
 
-/**
- * DTO pour la création et la consultation des réservations.
- */
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
@@ -15,45 +15,23 @@ public class ReservationDto {
 
     private Long id;
 
-    /** ID du trajet à réserver */
-    private Long trajetId;
-
-    /** ID de l'arrêt de départ */
+    private Long ligneId;
     private Long arretDepartId;
-
-    /** ID de l'arrêt d'arrivée */
     private Long arretArriveeId;
+    private Long horaireId;
 
-    /** Nom de l'arrêt de départ (lecture seule) */
     private String arretDepartNom;
-
-    /** Nom de l'arrêt d'arrivée (lecture seule) */
     private String arretArriveeNom;
-
-    /** Nom de la ligne (lecture seule) */
     private String ligneNom;
 
-    /** Date du trajet (lecture seule) */
-    private String dateTrajet;
+    private LocalDate dateTrajet;
+    private LocalTime heureDepart;
 
-    /** Heure de départ (lecture seule) */
-    private String heureDepart;
-
-    /** QR code généré (lecture seule) */
     private String codeQR;
-
-    /** Code textuel court (lecture seule) */
     private String codeTexte;
 
-    /** Type de paiement */
     private TypePaiement typePaiement;
-
-    /** Statut de la réservation */
     private StatutReservation statut;
-
-    /** Montant payé */
     private Double montant;
-
-    /** Date de réservation */
     private LocalDateTime dateReservation;
 }

@@ -44,8 +44,4 @@ public class Chauffeur {
     @JoinColumn(name = "agent_id", nullable = false)
     private User agent;
 
-    /** Ligne assignée (optionnel) */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ligne_id")
-    private Ligne ligne;
 }

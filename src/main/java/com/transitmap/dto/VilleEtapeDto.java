@@ -23,6 +23,6 @@ public class VilleEtapeDto {
     @NotNull
     private Integer ordre;
 
-    @NotNull
-    private Integer dureeDepuisDebut;
+    private boolean estDepart;
+    private boolean estArrivee;
 }

@@ -104,32 +104,15 @@
 
                     <span class="section-label">Assignation</span>
 
-                    <div class="row g-3 mb-4">
-                        <div class="col-6">
-                            <label class="form-label">Ligne *</label>
-                            <select th:field="*{ligneId}" class="form-select">
-                                <option value="">-- Choisir une ligne --</option>
-                                <option th:each="l : ${lignes}"
-                                        th:value="${l.id}"
-                                        th:text="${l.numero + ' — ' + l.nom}">
-                                </option>
-                            </select>
-                            <div class="text-danger"
-                                 th:errors="*{ligneId}"></div>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">
-                                Chauffeur (optionnel)
-                            </label>
-                            <select th:field="*{chauffeurId}"
-                                    class="form-select">
-                                <option value="">-- Aucun chauffeur --</option>
-                                <option th:each="c : ${chauffeurs}"
-                                        th:value="${c.id}"
-                                        th:text="${c.nomComplet}">
-                                </option>
-                            </select>
-                        </div>
+                    <div class="mb-4">
+                        <label class="form-label">Chauffeur (optionnel)</label>
+                        <select th:field="*{chauffeurId}" class="form-select">
+                            <option value="">-- Aucun chauffeur --</option>
+                            <option th:each="c : ${chauffeurs}"
+                                    th:value="${c.id}"
+                                    th:text="${c.nomComplet}">
+                            </option>
+                        </select>
                     </div>
 
                     <button type="submit" class="btn-submit">

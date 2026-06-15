@@ -12,4 +12,6 @@ public interface LigneInterurbaineRepository
 
     List<LigneInterurbaine> findByVilleDepartOrVilleArrivee(
             String villeDepart, String villeArrivee);
+
+    List<LigneInterurbaine> findByCreateurUsername(String username);
 }

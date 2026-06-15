@@ -33,12 +33,6 @@ public class ChauffeurDto {
     @Size(min = 6, message = "Le mot de passe doit contenir au moins 6 caractères")
     private String motDePasse;
 
-    /** Ligne assignée (optionnel) */
-    private Long ligneId;
-
-    /** Nom de la ligne (lecture seule) */
-    private String ligneNom;
-
     /** Matricule du véhicule assigné (lecture seule) */
     private String vehiculeMatricule;
 }

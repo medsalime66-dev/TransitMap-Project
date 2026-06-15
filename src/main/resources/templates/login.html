@@ -67,10 +67,6 @@
     <div class="alert-logout" th:if="${param.logout}">
         Vous avez été déconnecté avec succès.
     </div>
-    <div class="alert-error"
-         th:if="${param.deconnexion}">
-        Vous avez été déconnecté avec succès.
-    </div>
 
     <form th:action="@{/login}" method="post">
         <div class="mb-3">
@@ -103,7 +99,7 @@
         <div class="divider-line"></div>
     </div>
 
-    <a href="/inscription/choix" class="btn-register">
+    <a th:href="@{/inscription/choix}" class="btn-register">
         Créer un compte →
     </a>
 </div>

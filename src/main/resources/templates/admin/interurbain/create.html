@@ -95,19 +95,6 @@
                         </div>
                     </div>
 
-                    <div class="form-row mb-3">
-                        <div>
-                            <label class="form-label">Distance (km)</label>
-                            <input type="number" step="1" th:field="*{distanceKm}" class="form-control">
-                            <div class="text-danger" th:errors="*{distanceKm}"></div>
-                        </div>
-                        <div>
-                            <label class="form-label">Prix de base (MRU)</label>
-                            <input type="number" step="50" th:field="*{prixBase}" class="form-control">
-                            <div class="text-danger" th:errors="*{prixBase}"></div>
-                        </div>
-                    </div>
-
                     <div class="mb-4">
                         <label class="form-label">Description</label>
                         <textarea th:field="*{description}" class="form-control" rows="2"></textarea>

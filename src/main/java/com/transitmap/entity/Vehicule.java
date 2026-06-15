@@ -48,11 +48,6 @@ public class Vehicule {
     /** Position GPS actuelle (longitude) */
     private Double longitudeActuelle;
 
-    /** Ligne à laquelle le véhicule est assigné */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ligne_id", nullable = false)
-    private Ligne ligne;
-
     /** Chauffeur assigné (optionnel) */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chauffeur_id")

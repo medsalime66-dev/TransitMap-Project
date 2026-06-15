@@ -1,7 +1,6 @@
 package com.transitmap.dto;
 
 import com.transitmap.entity.DemandeInscription.StatutDemande;
-import com.transitmap.entity.Entreprise.TypeService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

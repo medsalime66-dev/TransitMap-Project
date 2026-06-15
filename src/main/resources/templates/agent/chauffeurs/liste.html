@@ -83,15 +83,7 @@
                                 th:text="${c.numeroPermis}"></td>
                             <td th:text="${c.telephone}"></td>
                             <td>
-                                <span th:if="${c.ligneNom != null}"
-                                      style="background:#EAF3DE;color:#3B6D11;
-                                             padding:2px 8px;border-radius:6px;
-                                             font-size:12px;"
-                                      th:text="${c.ligneNom}"></span>
-                                <span th:unless="${c.ligneNom != null}"
-                                      style="color:#aaa;font-size:12px;">
-                                    Non assigné
-                                </span>
+                                <span style="color:#aaa;font-size:12px;">—</span>
                             </td>
                             <td>
                                 <a th:href="@{/agent/chauffeurs/modifier/

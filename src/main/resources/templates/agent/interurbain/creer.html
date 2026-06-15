@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Créer une ligne interurbaine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .main{display:flex;flex:1;}
+        .content{flex:1;padding:28px;overflow:auto;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:6px;}
+        .page-sub{font-size:13px;color:#888;margin-bottom:24px;}
+        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:24px;margin-bottom:18px;}
+        .form-label{font-size:12px;color:#666;margin-bottom:5px;display:block;font-weight:500;}
+        .form-control{width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;}
+        .form-control:focus{border-color:#185FA5;}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+        .form-group{margin-bottom:16px;}
+        #map{height:420px;border-radius:10px;border:1px solid #e0e0e0;margin-bottom:12px;}
+        .map-hint{font-size:12px;color:#888;margin-bottom:12px;}
+        .map-legend{display:flex;align-items:center;gap:16px;margin-bottom:12px;font-size:12px;}
+        .legend-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:4px;}
+        .btn-submit{background:#185FA5;color:white;border:none;padding:11px 28px;
+                    border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;}
+        .btn-submit:hover{background:#0C447C;}
+        .btn-reset{background:#f5f5f5;color:#555;border:1px solid #e0e0e0;padding:10px 20px;
+                   border-radius:8px;font-size:13px;cursor:pointer;margin-left:8px;}
+        .coords-info{background:#f0f4f8;border-radius:8px;padding:10px 14px;
+                     font-size:12px;color:#555;margin-bottom:12px;min-height:36px;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;color:#a0aec0;font-size:14px;font-weight:500;text-decoration:none;margin-bottom:3px;white-space:nowrap;}
+        .sidebar-link:hover{background:rgba(255,255,255,0.08);color:white;}
+        .sidebar-section-label{font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin:0 0 8px 10px;white-space:nowrap;}
+        .sidebar-icon{font-size:17px;flex-shrink:0;width:22px;text-align:center;}
+        .sidebar-divider{height:1px;background:rgba(255,255,255,0.06);margin:14px 0;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="main">
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div class="content">
+
+            <div class="page-title">Créer une nouvelle ligne</div>
+            <div class="page-sub">Placez le départ et l'arrivée sur la carte, puis complétez les informations.</div>
+
+            <form th:action="@{/agent/interurbain/creer}" method="post">
+
+                <!-- Carte Leaflet -->
+                <div class="card">
+                    <div style="font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:10px;">
+                        Placement sur la carte
+                    </div>
+                    <div class="map-legend">
+                        <span><span class="legend-dot" style="background:#185FA5;"></span>1er clic = Départ</span>
+                        <span><span class="legend-dot" style="background:#1D9E75;"></span>2e clic = Arrivée</span>
+                    </div>
+                    <div class="map-hint">Cliquez sur la carte pour placer les points. Cliquez à nouveau pour les déplacer.</div>
+                    <div id="map"></div>
+                    <div class="coords-info" id="coordsInfo">Aucun point placé.</div>
+                    <button type="button" class="btn-reset" onclick="resetPoints()">
+                        ↺ Réinitialiser les points
+                    </button>
+                    <input type="hidden" name="latDepart"   id="latDepart">
+                    <input type="hidden" name="lngDepart"   id="lngDepart">
+                    <input type="hidden" name="latArrivee"  id="latArrivee">
+                    <input type="hidden" name="lngArrivee"  id="lngArrivee">
+                </div>
+
+                <!-- Informations ligne -->
+                <div class="card">
+                    <div style="font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:16px;">
+                        Informations de la ligne
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nom de la ligne *</label>
+                        <input type="text" name="nom" class="form-control"
+                               placeholder="Ex: Nouakchott — Atar Express" required>
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label class="form-label">Ville de départ *</label>
+                            <input type="text" name="villeDepart" id="villeDepart" class="form-control"
+                                   placeholder="Ex: Nouakchott" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Ville d'arrivée *</label>
+                            <input type="text" name="villeArrivee" id="villeArrivee" class="form-control"
+                                   placeholder="Ex: Atar" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Prix direct départ → arrivée (MRU) *</label>
+                        <input type="number" name="prixDirect" class="form-control"
+                               step="0.01" min="0" placeholder="Ex: 3000" required>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <button type="submit" class="btn-submit">Enregistrer la ligne</button>
+                        <a th:href="@{/agent/interurbain}"
+                           style="margin-left:12px;font-size:13px;color:#888;text-decoration:none;">
+                            Annuler
+                        </a>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const map = L.map('map').setView([18.0735, -15.9582], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let markerDepart = null;
+    let markerArrivee = null;
+    let polyline = null;
+
+    const iconDepart = L.divIcon({
+        html: '<div style="background:#185FA5;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>',
+        className: '', iconAnchor: [8, 8]
+    });
+    const iconArrivee = L.divIcon({
+        html: '<div style="background:#1D9E75;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>',
+        className: '', iconAnchor: [8, 8]
+    });
+
+    map.on('click', function(e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+
+        if (!markerDepart) {
+            // Premier clic → Départ
+            markerDepart = L.marker(e.latlng, {icon: iconDepart})
+                .bindTooltip('Départ', {permanent: true, direction: 'top'})
+                .addTo(map);
+            document.getElementById('latDepart').value = lat;
+            document.getElementById('lngDepart').value = lng;
+        } else if (!markerArrivee) {
+            // Deuxième clic → Arrivée
+            markerArrivee = L.marker(e.latlng, {icon: iconArrivee})
+                .bindTooltip('Arrivée', {permanent: true, direction: 'top'})
+                .addTo(map);
+            document.getElementById('latArrivee').value = lat;
+            document.getElementById('lngArrivee').value = lng;
+        } else {
+            // Les deux placés → déplacer l'arrivée à chaque clic suivant
+            map.removeLayer(markerArrivee);
+            markerArrivee = L.marker(e.latlng, {icon: iconArrivee})
+                .bindTooltip('Arrivée', {permanent: true, direction: 'top'})
+                .addTo(map);
+            document.getElementById('latArrivee').value = lat;
+            document.getElementById('lngArrivee').value = lng;
+        }
+
+        updatePolyline();
+        updateCoordsInfo();
+    });
+
+    function updatePolyline() {
+        if (polyline) { map.removeLayer(polyline); polyline = null; }
+        if (markerDepart && markerArrivee) {
+            polyline = L.polyline(
+                [markerDepart.getLatLng(), markerArrivee.getLatLng()],
+                {color: '#185FA5', weight: 3, dashArray: '6 4'}
+            ).addTo(map);
+        }
+    }
+
+    function updateCoordsInfo() {
+        let txt = '';
+        if (markerDepart) {
+            const ll = markerDepart.getLatLng();
+            txt += `Départ : ${ll.lat.toFixed(4)}, ${ll.lng.toFixed(4)}`;
+        }
+        if (markerArrivee) {
+            const ll = markerArrivee.getLatLng();
+            txt += `  |  Arrivée : ${ll.lat.toFixed(4)}, ${ll.lng.toFixed(4)}`;
+        }
+        document.getElementById('coordsInfo').textContent =
+            txt || 'Aucun point placé.';
+    }
+
+    function resetPoints() {
+        if (markerDepart) { map.removeLayer(markerDepart); markerDepart = null; }
+        if (markerArrivee) { map.removeLayer(markerArrivee); markerArrivee = null; }
+        if (polyline) { map.removeLayer(polyline); polyline = null; }
+        ['latDepart','lngDepart','latArrivee','lngArrivee'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        updateCoordsInfo();
+    }
+</script>
+</body>
+</html>

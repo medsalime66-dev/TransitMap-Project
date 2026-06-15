@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>TransitMap — Carte</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <style>
         *{box-sizing:border-box;margin:0;padding:0;}
         body{font-family:'Segoe UI',sans-serif;}
@@ -18,13 +18,15 @@
         .btn-logout{background:#E24B4A;color:white;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-left:6px;}
         .btn-dashboard{background:#1D9E75;color:white;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;}
         #map{flex:1;z-index:1;}
-        .bottom-panel{background:white;border-top:1px solid #e0e0e0;padding:14px 24px;flex-shrink:0;}
+        .bottom-panel{background:white;border-top:1px solid #e0e0e0;padding:14px 24px;flex-shrink:0;max-height:160px;overflow-y:auto;}
         .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
         .panel-title{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.8px;}
         .login-prompt{font-size:12px;color:#185FA5;text-decoration:none;font-weight:500;}
         .ligne-list{display:flex;flex-wrap:wrap;gap:8px;}
-        .ligne-chip{background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;}
-        .ligne-chip:hover{background:#185FA5;color:white;}
+        .ligne-chip{background:#E6F1FB;color:#0C447C;border:1px solid #B5D4F4;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+        .ligne-chip:hover{background:#185FA5;color:white !important;}
+        .chip-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+        .empty-msg{font-size:13px;color:#aaa;}
     </style>
 </head>
 <body>
@@ -33,37 +35,23 @@
     <nav class="top-nav">
         <a href="/map" class="brand">🚌 TransitMap</a>
         <div class="nav-right">
-
-            <!-- GUEST -->
             <th:block th:if="${userRole == 'GUEST'}">
-                <span style="color:#8896b3;font-size:13px;margin-right:8px;">
-                    Explorez les lignes de transport
-                </span>
+                <span style="color:#8896b3;font-size:13px;margin-right:8px;">Explorez les lignes interurbaines</span>
                 <a href="/login" class="btn-login">Se connecter</a>
             </th:block>
-
-            <!-- VOYAGEUR -->
             <th:block th:if="${userRole == 'VOYAGEUR'}">
                 <a href="/map" class="nav-link-item">🗺 Carte</a>
-                <a href="/interurbain/search"
-                   class="nav-link-item">🔍 Voyages</a>
+                <a href="/voyageur/reservations" class="nav-link-item">🎫 Mes réservations</a>
                 <a href="/logout" class="btn-logout">Déconnexion</a>
             </th:block>
-
-            <!-- AGENT -->
             <th:block th:if="${userRole == 'AGENT'}">
-                <a href="/agent/dashboard"
-                   class="btn-dashboard">📋 Tableau de bord</a>
+                <a href="/agent/dashboard" class="btn-dashboard">📋 Tableau de bord</a>
                 <a href="/logout" class="btn-logout">Déconnexion</a>
             </th:block>
-
-            <!-- ADMIN -->
             <th:block th:if="${userRole == 'ADMIN'}">
-                <a href="/admin/dashboard"
-                   class="btn-dashboard">📊 Dashboard</a>
+                <a href="/admin/dashboard" class="btn-dashboard">📊 Dashboard</a>
                 <a href="/logout" class="btn-logout">Déconnexion</a>
             </th:block>
-
         </div>
     </nav>
 
@@ -71,88 +59,91 @@
 
     <div class="bottom-panel">
         <div class="panel-header">
-            <div class="panel-title">Lignes disponibles</div>
+            <div class="panel-title">Lignes interurbaines disponibles</div>
             <th:block th:if="${userRole == 'GUEST'}">
-                <a href="/login" class="login-prompt">
-                    Connectez-vous pour plus de détails →
-                </a>
+                <a href="/login" class="login-prompt">Connectez-vous pour réserver →</a>
             </th:block>
         </div>
-        <div class="ligne-list" id="ligneList"></div>
+        <div class="ligne-list" id="ligneList">
+            <span class="empty-msg">Chargement des lignes…</span>
+        </div>
     </div>
 
 </div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script th:inline="javascript">
     const isVoyageur = /*[[${userRole == 'VOYAGEUR'}]]*/ false;
 
-    const map = L.map('map').setView([18.0735, -15.9582], 13);
+    const map = L.map('map').setView([18.0735, -15.9582], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        {maxZoom:19}).addTo(map);
+        {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
 
-    const couleurs = ['#185FA5','#3B6D11','#BA7517',
-                      '#7F77DD','#E24B4A','#1D9E75'];
+    const couleurs = ['#185FA5','#1D9E75','#BA7517','#7F77DD','#E24B4A','#0C447C'];
+    const allBounds = [];
 
-    // Véhicules — position GPS
-    fetch('/map-api/vehicules').then(r=>r.json()).then(data=>{
-        data.forEach(v=>{
-            if(v.latitudeActuelle && v.longitudeActuelle){
-                L.circleMarker(
-                    [v.latitudeActuelle, v.longitudeActuelle],
-                    {radius:9, color:'#E24B4A',
-                     fillColor:'#E24B4A', fillOpacity:0.9}
-                ).addTo(map).bindPopup(`<b>${v.matricule}</b>`);
+    fetch('/map-api/lignes')
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('ligneList');
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<span class="empty-msg">Aucune ligne disponible pour le moment.</span>';
+                return;
             }
-        });
-    });
 
-    // Lignes — polylines + arrêts colorés
-    fetch('/map-api/lignes').then(r=>r.json()).then(data=>{
-        const container = document.getElementById('ligneList');
-        data.forEach((l, index) => {
-            const couleur = couleurs[index % couleurs.length];
+            data.forEach((ligne, index) => {
+                const couleur = couleurs[index % couleurs.length];
+                const etapes = (ligne.etapes || []).slice().sort((a,b) => a.ordre - b.ordre);
 
-            const chip = document.createElement('a');
-            chip.className = 'ligne-chip';
-            chip.textContent = `${l.numero} — ${l.nom}`;
-            chip.href = isVoyageur
-                ? `/voyageur/lignes/${l.id}/trajets`
-                : '/login';
-            chip.style.borderColor = couleur;
-            chip.style.color = couleur;
-            container.appendChild(chip);
+                // Chip cliquable
+                const chip = document.createElement('a');
+                chip.className = 'ligne-chip';
+                chip.innerHTML = `<span class="chip-dot" style="background:${couleur}"></span>${ligne.nom}`;
+                chip.href = isVoyageur
+                    ? `/voyageur/interurbain/${ligne.id}/reserver`
+                    : '/login';
+                chip.style.borderColor = couleur;
+                chip.style.color = couleur;
+                container.appendChild(chip);
 
-            fetch(`/map-api/arrets/ligne/${l.id}`)
-                .then(r=>r.json())
-                .then(arrets=>{
-                    if(!arrets || arrets.length < 2) return;
-                    arrets.sort((a,b) => a.ordre - b.ordre);
-                    const coords = arrets.map(a =>
-                        [a.latitude, a.longitude]);
+                if (etapes.length < 1) return;
 
-                    L.polyline(coords, {
-                        color: couleur, weight: 5, opacity: 0.85
-                    }).addTo(map).bindPopup(
-                        `<b>${l.numero}</b> — ${l.nom}`);
+                const coords = etapes.map(e => [e.latitude, e.longitude]);
 
-                    arrets.forEach((a, i) => {
-                        const terminal =
-                            i === 0 || i === arrets.length - 1;
-                        L.circleMarker(
-                            [a.latitude, a.longitude], {
-                            radius: terminal ? 9 : 6,
-                            color: couleur,
-                            fillColor: terminal ? couleur : 'white',
-                            fillOpacity: 1,
-                            weight: 2
-                        }).addTo(map).bindPopup(
-                            `<b>${a.nom}</b><br>
-                             <small>${l.nom}</small>`);
-                    });
+                // Polyline de la ligne
+                if (coords.length > 1) {
+                    L.polyline(coords, {color: couleur, weight: 5, opacity: 0.85})
+                        .addTo(map)
+                        .bindPopup(`<b>${ligne.nom}</b><br><small>${ligne.villeDepart} → ${ligne.villeArrivee}</small>`);
+                }
+
+                // Marqueurs des arrêts
+                etapes.forEach((e, i) => {
+                    const terminal = i === 0 || i === etapes.length - 1;
+                    L.circleMarker([e.latitude, e.longitude], {
+                        radius: terminal ? 9 : 6,
+                        color: couleur,
+                        fillColor: terminal ? couleur : 'white',
+                        fillOpacity: 1,
+                        weight: 2
+                    }).addTo(map)
+                      .bindPopup(`<b>${e.nomVille}</b><br><small>${ligne.nom}</small>`);
+                    allBounds.push([e.latitude, e.longitude]);
                 });
+            });
+
+            // Ajuster la vue pour montrer toutes les lignes
+            if (allBounds.length > 0) {
+                map.fitBounds(L.latLngBounds(allBounds), {padding: [50, 50]});
+            }
+        })
+        .catch(err => {
+            console.error('Erreur chargement lignes:', err);
+            document.getElementById('ligneList').innerHTML =
+                '<span class="empty-msg">Erreur de chargement des lignes.</span>';
         });
-    });
 </script>
 </body>
 </html>

@@ -54,6 +54,15 @@
         Votre dossier sera examiné par l'administrateur
     </div>
 
+    <!-- Erreurs globales (email déjà utilisé, mots de passe non concordants) -->
+    <div th:if="${erreur}"
+         style="background:#FCEBEB;color:#A32D2D;
+                border:1px solid #F09595;border-radius:8px;
+                padding:10px 14px;font-size:13px;
+                margin-bottom:16px;"
+         th:text="${erreur}">
+    </div>
+
     <!-- Message si rejeté -->
     <div class="rejected-alert"
          th:if="${demande != null and

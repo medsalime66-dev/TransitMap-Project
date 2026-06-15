@@ -88,13 +88,11 @@
                         <span class="city" th:text="${l.villeArrivee}"></span>
                     </div>
                     <div style="text-align:right;">
-                        <div class="prix" th:text="${l.prixBase + ' MRU'}"></div>
-                        <div class="prix-label">à partir de</div>
                     </div>
                 </div>
 
                 <div style="font-size:12px;color:#888;margin-bottom:12px;"
-                     th:text="${l.distanceKm + ' km · ' + l.nom}"></div>
+                     th:text="${l.nom}"></div>
 
                 <!-- Horaires disponibles -->
                 <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:8px;">

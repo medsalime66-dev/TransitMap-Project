@@ -17,7 +17,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional  // ← هذا هو الحل
+    @Transactional 
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
 

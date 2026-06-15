@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes lignes interurbaines</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/admin.css" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Segoe UI',sans-serif;background:#f5f7fa;}
+        .layout{display:flex;flex-direction:column;min-height:100vh;}
+        .main{display:flex;flex:1;}
+        .content{flex:1;padding:28px;overflow:auto;}
+        .page-title{font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:24px;}
+        .card{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:20px;}
+        .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+        .card-title{font-size:14px;font-weight:600;color:#1a1a2e;}
+        .btn-add{background:#185FA5;color:white;border:none;padding:8px 18px;
+                 border-radius:8px;font-size:13px;text-decoration:none;}
+        .tbl{width:100%;border-collapse:collapse;font-size:13px;}
+        .tbl th{text-align:left;padding:10px 14px;color:#888;font-weight:500;
+                font-size:12px;border-bottom:1px solid #f0f0f0;}
+        .tbl td{padding:12px 14px;border-bottom:1px solid #f9f9f9;color:#333;}
+        .tbl tr:last-child td{border-bottom:none;}
+        .tbl tr:hover td{background:#fafafa;}
+        .btn-sm{padding:4px 12px;border-radius:6px;font-size:12px;text-decoration:none;display:inline-block;}
+        .btn-detail{background:#E6F1FB;color:#0C447C;}
+        .btn-del{background:#FCEBEB;color:#A32D2D;}
+        .route{display:flex;align-items:center;gap:8px;font-weight:500;}
+        .city{background:#f0f4f8;padding:3px 10px;border-radius:6px;font-size:12px;}
+        .arrow{color:#aaa;}
+        .empty{text-align:center;padding:40px;color:#aaa;font-size:13px;}
+        .badge-num{background:#E6F1FB;color:#185FA5;padding:2px 8px;border-radius:10px;font-size:11px;}
+        .sidebar-link{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;color:#a0aec0;font-size:14px;font-weight:500;text-decoration:none;margin-bottom:3px;white-space:nowrap;}
+        .sidebar-link:hover{background:rgba(255,255,255,0.08);color:white;}
+        .sidebar-section-label{font-size:11px;color:#4a5568;text-transform:uppercase;letter-spacing:1.2px;font-weight:700;margin:0 0 8px 10px;white-space:nowrap;}
+        .sidebar-icon{font-size:17px;flex-shrink:0;width:22px;text-align:center;}
+        .sidebar-divider{height:1px;background:rgba(255,255,255,0.06);margin:14px 0;}
+    </style>
+</head>
+<body>
+<div class="layout">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div class="main">
+        <div th:replace="~{fragments/sidebar :: sidebar}"></div>
+        <div class="content">
+
+            <div class="page-title">Mes lignes interurbaines</div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Toutes mes lignes</div>
+                    <a th:href="@{/agent/interurbain/creer}" class="btn-add">+ Nouvelle ligne</a>
+                </div>
+
+                <div class="empty" th:if="${#lists.isEmpty(lignes)}">
+                    Aucune ligne créée.
+                    <a th:href="@{/agent/interurbain/creer}"
+                       style="color:#185FA5;">Créer la première →</a>
+                </div>
+
+                <table class="tbl" th:if="${!#lists.isEmpty(lignes)}">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Route</th>
+                            <th>Arrêts</th>
+                            <th>Segments prix</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="l : ${lignes}">
+                            <td style="font-weight:500;" th:text="${l.nom}"></td>
+                            <td>
+                                <div class="route">
+                                    <span class="city" th:text="${l.villeDepart}"></span>
+                                    <span class="arrow">→</span>
+                                    <span class="city" th:text="${l.villeArrivee}"></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-num"
+                                      th:text="${l.etapes != null ? l.etapes.size() : 0} + ' arrêts'"></span>
+                            </td>
+                            <td>
+                                <span th:if="${l.etapes != null and l.etapes.size() > 1}"
+                                      class="badge-num"
+                                      th:text="${l.etapes.size() * (l.etapes.size() - 1) / 2} + ' segments'"></span>
+                                <span th:unless="${l.etapes != null and l.etapes.size() > 1}"
+                                      style="color:#aaa;font-size:12px;">—</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/agent/interurbain/{id}(id=${l.id})}"
+                                   class="btn-sm btn-detail"
+                                   style="margin-right:4px;">Détail</a>
+                                <a th:href="@{/agent/interurbain/{id}/supprimer(id=${l.id})}"
+                                   class="btn-sm btn-del"
+                                   onclick="return confirm('Supprimer cette ligne et tous ses arrêts ?')">
+                                    Supprimer
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

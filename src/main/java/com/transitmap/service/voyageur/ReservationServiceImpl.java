@@ -10,65 +10,82 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Implémentation du service de réservation.
- */
 @Service
 @RequiredArgsConstructor
 public class ReservationServiceImpl implements ReservationService {
 
     private final ReservationRepository reservationRepository;
-    private final TrajetRepository trajetRepository;
-    private final ArretRepository arretRepository;
+    private final LigneInterurbaineRepository ligneRepository;
+    private final VilleEtapeRepository villeEtapeRepository;
+    private final HoraireInterurbaineRepository horaireRepository;
+    private final PrixSegmentRepository prixSegmentRepository;
     private final UserRepository userRepository;
-    private final VehiculeRepository vehiculeRepository;
 
-    /**
-     * Crée une réservation en attente de paiement.
-     * Vérifie la disponibilité des places avant de créer.
-     */
     @Override
     @Transactional
-    public ReservationDto creerReservation(ReservationDto dto,
-                                            String usernameVoyageur) {
+    public ReservationDto creerReservation(ReservationDto dto, String usernameVoyageur) {
         User voyageur = trouverUtilisateur(usernameVoyageur);
-        Trajet trajet = trajetRepository.findById(dto.getTrajetId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Trajet introuvable"));
-        Arret arretDepart = arretRepository.findById(dto.getArretDepartId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Arrêt de départ introuvable"));
-        Arret arretArrivee = arretRepository.findById(dto.getArretArriveeId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Arrêt d'arrivée introuvable"));
 
-        // Vérification des places disponibles
-        if (trajet.getVehicule() != null &&
-                trajet.getVehicule().getPlacesDisponibles() <= 0) {
-            throw new RuntimeException(
-                    "Aucune place disponible pour ce trajet");
+        LigneInterurbaine ligne = ligneRepository.findById(dto.getLigneId())
+                .orElseThrow(() -> new ResourceNotFoundException("Ligne introuvable"));
+
+        VilleEtape arretDepart = villeEtapeRepository.findById(dto.getArretDepartId())
+                .orElseThrow(() -> new ResourceNotFoundException("Arrêt de départ introuvable"));
+        VilleEtape arretArrivee = villeEtapeRepository.findById(dto.getArretArriveeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Arrêt d'arrivée introuvable"));
+
+        // Les deux arrêts doivent appartenir à la ligne
+        if (!arretDepart.getLigne().getId().equals(ligne.getId())
+                || !arretArrivee.getLigne().getId().equals(ligne.getId())) {
+            throw new IllegalArgumentException("Les arrêts n'appartiennent pas à cette ligne");
         }
+        // L'ordre du départ doit précéder l'arrivée
+        if (arretDepart.getOrdre() >= arretArrivee.getOrdre()) {
+            throw new IllegalArgumentException(
+                    "L'arrêt de départ doit précéder l'arrêt d'arrivée");
+        }
+
+        // Horaire choisi
+        HoraireInterurbain horaire = horaireRepository.findById(dto.getHoraireId())
+                .orElseThrow(() -> new ResourceNotFoundException("Horaire introuvable"));
+        if (!horaire.getLigne().getId().equals(ligne.getId())) {
+            throw new IllegalArgumentException("Cet horaire n'appartient pas à cette ligne");
+        }
+
+        // Date du trajet (>= aujourd'hui)
+        LocalDate dateTrajet = dto.getDateTrajet();
+        if (dateTrajet == null || dateTrajet.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Date de trajet invalide");
+        }
+
+        // Prix calculé côté serveur (jamais celui envoyé par le client)
+        Double montant = prixSegmentRepository
+                .findPrixEntre(ligne.getId(), arretDepart.getId(), arretArrivee.getId())
+                .map(PrixSegment::getPrix)
+                .orElse(horaire.getPrix());
 
         Reservation reservation = Reservation.builder()
                 .voyageur(voyageur)
-                .trajet(trajet)
+                .ligne(ligne)
                 .arretDepart(arretDepart)
                 .arretArrivee(arretArrivee)
+                .horaire(horaire)
+                .dateTrajet(dateTrajet)
+                .montant(montant)
                 .dateReservation(LocalDateTime.now())
-                .typePaiement(TypePaiement.ELECTRONIQUE)
+                .typePaiement(dto.getTypePaiement() != null
+                        ? dto.getTypePaiement() : TypePaiement.BANKILY)
                 .statut(StatutReservation.EN_ATTENTE)
                 .build();
 
         return mapper(reservationRepository.save(reservation));
     }
 
-    /**
-     * Retourne toutes les réservations du voyageur connecté.
-     */
     @Override
     @Transactional(readOnly = true)
     public List<ReservationDto> mesReservations(String usernameVoyageur) {
@@ -78,141 +95,101 @@ public class ReservationServiceImpl implements ReservationService {
                 .stream().map(this::mapper).toList();
     }
 
-    /**
-     * Retourne une réservation par son ID.
-     */
     @Override
     @Transactional(readOnly = true)
     public ReservationDto trouverParId(Long id, String usernameVoyageur) {
         Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Réservation introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réservation introuvable"));
+        verifierProprietaire(reservation, usernameVoyageur);
         return mapper(reservation);
     }
 
-    /**
-     * Confirme la réservation après validation du paiement.
-     * Génère un QR code et un code textuel uniques.
-     * Décrémente les places disponibles du véhicule.
-     */
     @Override
     @Transactional
     public ReservationDto confirmerApresPaiement(Long reservationId) {
         Reservation reservation = reservationRepository.findById(reservationId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Réservation introuvable"));
-
-        // Génération des codes uniques
-        String codeTexte = genererCodeTexte();
-        String codeQR = UUID.randomUUID().toString();
+                .orElseThrow(() -> new ResourceNotFoundException("Réservation introuvable"));
 
         reservation.setStatut(StatutReservation.CONFIRME);
-        reservation.setCodeTexte(codeTexte);
-        reservation.setCodeQR(codeQR);
-
-        // Décrémenter les places du véhicule
-        Vehicule vehicule = reservation.getTrajet().getVehicule();
-        if (vehicule != null && vehicule.getPlacesDisponibles() > 0) {
-            vehicule.setPlacesDisponibles(
-                    vehicule.getPlacesDisponibles() - 1);
-            vehiculeRepository.save(vehicule);
-        }
+        reservation.setCodeTexte(genererCodeTexte());
+        reservation.setCodeQR(UUID.randomUUID().toString());
 
         return mapper(reservationRepository.save(reservation));
     }
 
-    /**
-     * Annule une réservation en attente.
-     */
     @Override
     @Transactional
     public void annuler(Long id, String usernameVoyageur) {
         Reservation reservation = reservationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Réservation introuvable"));
-
-        if (reservation.getStatut() == StatutReservation.CONFIRME) {
-            // Restituer la place
-            Vehicule vehicule = reservation.getTrajet().getVehicule();
-            if (vehicule != null) {
-                vehicule.setPlacesDisponibles(
-                        vehicule.getPlacesDisponibles() + 1);
-                vehiculeRepository.save(vehicule);
-            }
-        }
-
+                .orElseThrow(() -> new ResourceNotFoundException("Réservation introuvable"));
+        verifierProprietaire(reservation, usernameVoyageur);
         reservation.setStatut(StatutReservation.ANNULE);
         reservationRepository.save(reservation);
     }
 
-    /**
-     * Valide un code textuel saisi par le chauffeur.
-     * Marque la réservation comme UTILISEE.
-     */
     @Override
     @Transactional
     public ReservationDto validerCode(String codeTexte) {
-        Reservation reservation = reservationRepository
-                .findByCodeTexte(codeTexte)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Code invalide ou introuvable"));
+        Reservation reservation = reservationRepository.findByCodeTexte(codeTexte)
+                .orElseThrow(() -> new ResourceNotFoundException("Code invalide"));
 
         if (reservation.getStatut() != StatutReservation.CONFIRME) {
-            throw new RuntimeException(
-                    "Ce code a déjà été utilisé ou est invalide");
+            throw new RuntimeException("Ce code a déjà été utilisé ou est invalide");
         }
-
         reservation.setStatut(StatutReservation.UTILISE);
         return mapper(reservationRepository.save(reservation));
     }
 
-    /**
-     * Retourne les réservations confirmées d'un trajet (pour le chauffeur).
-     */
     @Override
     @Transactional(readOnly = true)
-    public List<ReservationDto> reservationsEnAttenteParTrajet(Long trajetId) {
-        Trajet trajet = trajetRepository.findById(trajetId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Trajet introuvable"));
-        return reservationRepository
-                .findByTrajetAndStatut(trajet, StatutReservation.CONFIRME)
-                .stream().map(this::mapper).toList();
+    public Double calculerPrix(Long ligneId, Long arretDepartId, Long arretArriveeId) {
+        if (ligneId == null || arretDepartId == null || arretArriveeId == null) {
+            return null;
+        }
+        return prixSegmentRepository
+                .findPrixEntre(ligneId, arretDepartId, arretArriveeId)
+                .map(PrixSegment::getPrix)
+                .orElse(null);
     }
 
-    // === Méthodes privées ===
+    // ============================ Helpers ============================
 
-    /** Génère un code textuel unique de 8 caractères */
+    /** username == null  -> appel interne (ex. paiement), pas de contrôle. */
+    private void verifierProprietaire(Reservation reservation, String username) {
+        if (username == null) return;
+        if (reservation.getVoyageur() == null
+                || !username.equals(reservation.getVoyageur().getUsername())) {
+            // On masque l'existence : 404 plutôt que 403
+            throw new ResourceNotFoundException("Réservation introuvable");
+        }
+    }
+
     private String genererCodeTexte() {
         String code;
         do {
             code = UUID.randomUUID().toString()
-                    .replace("-", "")
-                    .substring(0, 8)
-                    .toUpperCase();
+                    .replace("-", "").substring(0, 8).toUpperCase();
         } while (reservationRepository.findByCodeTexte(code).isPresent());
         return code;
     }
 
-    /** Trouve un utilisateur par son nom d'utilisateur */
     private User trouverUtilisateur(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Utilisateur introuvable"));
+                .orElseThrow(() -> new ResourceNotFoundException("Utilisateur introuvable"));
     }
 
-    /** Convertit une entité Reservation en DTO */
     private ReservationDto mapper(Reservation r) {
         return ReservationDto.builder()
                 .id(r.getId())
-                .trajetId(r.getTrajet().getId())
+                .ligneId(r.getLigne().getId())
                 .arretDepartId(r.getArretDepart().getId())
                 .arretArriveeId(r.getArretArrivee().getId())
-                .arretDepartNom(r.getArretDepart().getNom())
-                .arretArriveeNom(r.getArretArrivee().getNom())
-                .ligneNom(r.getTrajet().getLigne().getNom())
-                .dateTrajet(r.getTrajet().getDateTrajet().toString())
-                .heureDepart(r.getTrajet().getHeureDepart().toString())
+                .arretDepartNom(r.getArretDepart().getNomVille())
+                .arretArriveeNom(r.getArretArrivee().getNomVille())
+                .ligneNom(r.getLigne().getNom())
+                .horaireId(r.getHoraire() != null ? r.getHoraire().getId() : null)
+                .dateTrajet(r.getDateTrajet())
+                .heureDepart(r.getHoraire() != null ? r.getHoraire().getHeureDepart() : null)
                 .codeQR(r.getCodeQR())
                 .codeTexte(r.getCodeTexte())
                 .typePaiement(r.getTypePaiement())

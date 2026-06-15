@@ -1,5 +1,7 @@
 package com.transitmap.controller.voyageur;
 
+import com.transitmap.dto.ReservationDto;
+import com.transitmap.entity.Entreprise;
 import com.transitmap.entity.Paiement;
 import com.transitmap.entity.Paiement.MethodePaiement;
 import com.transitmap.entity.Paiement.StatutPaiement;
@@ -9,15 +11,13 @@ import com.transitmap.repository.PaiementRepository;
 import com.transitmap.repository.ReservationRepository;
 import com.transitmap.service.voyageur.ReservationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
-/**
- * Contrôleur pour le processus de paiement du voyageur.
- */
 @Controller
 @RequestMapping("/voyageur/paiement")
 @RequiredArgsConstructor
@@ -28,94 +28,81 @@ public class VoyageurPaiementController {
     private final EntrepriseRepository entrepriseRepository;
     private final ReservationService reservationService;
 
-    /** Page de sélection de la méthode de paiement */
+    // 1. Choix de la méthode de paiement
     @GetMapping("/{reservationId}")
-    public String choisirMethode(
-            @PathVariable Long reservationId,
-            Model model) {
+    public String choisirMethode(@PathVariable Long reservationId,
+                                 Authentication authentication, Model model) {
 
-        var reservation = reservationRepository
-                .findById(reservationId).orElseThrow();
-
-        // Trouver l'entreprise de l'agent lié à la ligne du trajet
-        var entrepriseOpt = entrepriseRepository.findAll()
-                .stream().findFirst();
+        // Lève 404 si la réservation n'appartient pas au voyageur connecté
+        ReservationDto reservation =
+                reservationService.trouverParId(reservationId, authentication.getName());
 
         model.addAttribute("reservation", reservation);
-        model.addAttribute("entreprise", entrepriseOpt.orElse(null));
-        model.addAttribute("methodes", MethodePaiement.values());
-
         return "voyageur/paiement-methode";
     }
 
-    /** Page de confirmation avec code commerçant */
+    // 2. Page de confirmation (code commerçant selon la méthode)
     @GetMapping("/{reservationId}/confirmer")
-    public String pageConfirmation(
-            @PathVariable Long reservationId,
-            @RequestParam String methode,
-            Model model) {
+    public String pageConfirmation(@PathVariable Long reservationId,
+                                   @RequestParam String methode,
+                                   Authentication authentication, Model model) {
 
-        var reservation = reservationRepository
-                .findById(reservationId).orElseThrow();
+        ReservationDto reservation =
+                reservationService.trouverParId(reservationId, authentication.getName());
 
-        // Récupérer le code commerçant selon la méthode choisie
-        var entrepriseOpt = entrepriseRepository.findAll()
-                .stream().findFirst();
+        // Entreprise exploitant la ligne (sinon, repli sur la première)
+        Entreprise ent = entrepriseRepository.findByLigneId(reservation.getLigneId())
+                .orElseGet(() -> entrepriseRepository.findAll()
+                        .stream().findFirst().orElse(null));
 
-        String codeCommerçant = "";
-        if (entrepriseOpt.isPresent()) {
-            var ent = entrepriseOpt.get();
-            codeCommerçant = switch (methode) {
-                case "BANKILY" -> ent.getCodeBankily() != null
-                        ? ent.getCodeBankily() : "";
-                case "MASRVI"  -> ent.getCodeMasrvi() != null
-                        ? ent.getCodeMasrvi() : "";
-                case "SEDAD"   -> ent.getCodeSedad() != null
-                        ? ent.getCodeSedad() : "";
-                case "CLICK"   -> ent.getCodeClick() != null
-                        ? ent.getCodeClick() : "";
-                case "BAMIS"   -> ent.getCodeBamis() != null
-                        ? ent.getCodeBamis() : "";
-                case "BIMBANK" -> ent.getCodeBimbank() != null
-                        ? ent.getCodeBimbank() : "";
-                case "BCIPAY"  -> ent.getCodeBciPay() != null
-                        ? ent.getCodeBciPay() : "";
+        String codeCommercant = "";
+        if (ent != null) {
+            codeCommercant = switch (methode) {
+                case "BANKILY" -> nz(ent.getCodeBankily());
+                case "MASRVI"  -> nz(ent.getCodeMasrvi());
+                case "SEDAD"   -> nz(ent.getCodeSedad());
+                case "CLICK"   -> nz(ent.getCodeClick());
+                case "BAMIS"   -> nz(ent.getCodeBamis());
+                case "BIMBANK" -> nz(ent.getCodeBimbank());
+                case "BCIPAY"  -> nz(ent.getCodeBciPay());
                 default -> "";
             };
         }
 
         model.addAttribute("reservation", reservation);
         model.addAttribute("methode", methode);
-        model.addAttribute("codeCommerçant", codeCommerçant);
-
+        model.addAttribute("codeCommerçant", codeCommercant);
         return "voyageur/paiement-confirmation";
     }
 
-    /** Valide le code de transaction et confirme la réservation */
+    // 3. Validation du paiement
     @PostMapping("/{reservationId}/valider")
-    public String validerPaiement(
-            @PathVariable Long reservationId,
-            @RequestParam String methode,
-            @RequestParam String codeTransaction) {
+    public String validerPaiement(@PathVariable Long reservationId,
+                                  @RequestParam String methode,
+                                  @RequestParam String codeTransaction,
+                                  Authentication authentication) {
 
-        Reservation reservation = reservationRepository
-                .findById(reservationId).orElseThrow();
+        // Vérifie la propriété AVANT toute écriture (404 sinon)
+        reservationService.trouverParId(reservationId, authentication.getName());
 
-        // Enregistrement du paiement (validation automatique)
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow();
+
         Paiement paiement = Paiement.builder()
                 .reservation(reservation)
                 .methode(MethodePaiement.valueOf(methode))
-                .montant(reservation.getMontant() != null
-                        ? reservation.getMontant() : 0.0)
+                .montant(reservation.getMontant() != null ? reservation.getMontant() : 0.0)
                 .codeTransaction(codeTransaction)
                 .dateValidation(LocalDateTime.now())
                 .statut(StatutPaiement.VALIDE)
                 .build();
         paiementRepository.save(paiement);
 
-        // Confirmation + génération QR
         reservationService.confirmerApresPaiement(reservationId);
-
         return "redirect:/voyageur/reservations/" + reservationId;
+    }
+
+    private String nz(String s) {
+        return s != null ? s : "";
     }
 }

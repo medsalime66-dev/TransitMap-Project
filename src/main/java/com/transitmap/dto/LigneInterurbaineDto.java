@@ -20,14 +20,6 @@ public class LigneInterurbaineDto {
     @NotBlank(message = "Ville arrivée obligatoire")
     private String villeArrivee;
 
-    @NotNull(message = "Distance obligatoire")
-    @Min(1)
-    private Double distanceKm;
-
-    @NotNull(message = "Prix de base obligatoire")
-    @Min(0)
-    private Double prixBase;
-
     private String description;
 
     private List<VilleEtapeDto> etapes;

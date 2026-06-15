@@ -25,8 +25,6 @@ public class InterurbainServiceImpl implements InterurbainService {
                 .nom(dto.getNom())
                 .villeDepart(dto.getVilleDepart())
                 .villeArrivee(dto.getVilleArrivee())
-                .distanceKm(dto.getDistanceKm())
-                .prixBase(dto.getPrixBase())
                 .description(dto.getDescription())
                 .build();
         return mapLigne(ligneRepo.save(ligne));
@@ -40,8 +38,6 @@ public class InterurbainServiceImpl implements InterurbainService {
         ligne.setNom(dto.getNom());
         ligne.setVilleDepart(dto.getVilleDepart());
         ligne.setVilleArrivee(dto.getVilleArrivee());
-        ligne.setDistanceKm(dto.getDistanceKm());
-        ligne.setPrixBase(dto.getPrixBase());
         ligne.setDescription(dto.getDescription());
         return mapLigne(ligneRepo.save(ligne));
     }
@@ -115,9 +111,11 @@ public class InterurbainServiceImpl implements InterurbainService {
         LigneInterurbaine ligne = ligneRepo.findById(dto.getLigneId())
                 .orElseThrow(() -> new ResourceNotFoundException("Ligne introuvable"));
         VilleEtape e = VilleEtape.builder()
-                .ligne(ligne).nomVille(dto.getNomVille())
-                .latitude(dto.getLatitude()).longitude(dto.getLongitude())
-                .ordre(dto.getOrdre()).dureeDepuisDebut(dto.getDureeDepuisDebut())
+                .ligne(ligne)
+                .nomVille(dto.getNomVille())
+                .latitude(dto.getLatitude())
+                .longitude(dto.getLongitude())
+                .ordre(dto.getOrdre())
                 .build();
         return mapEtape(etapeRepo.save(e));
     }
@@ -141,30 +139,33 @@ public class InterurbainServiceImpl implements InterurbainService {
 
     private LigneInterurbaineDto mapLigne(LigneInterurbaine l) {
         return LigneInterurbaineDto.builder()
-                .id(l.getId()).nom(l.getNom())
+                .id(l.getId())
+                .nom(l.getNom())
                 .villeDepart(l.getVilleDepart())
                 .villeArrivee(l.getVilleArrivee())
-                .distanceKm(l.getDistanceKm())
-                .prixBase(l.getPrixBase())
                 .description(l.getDescription())
                 .build();
     }
 
     private VilleEtapeDto mapEtape(VilleEtape e) {
         return VilleEtapeDto.builder()
-                .id(e.getId()).ligneId(e.getLigne().getId())
+                .id(e.getId())
+                .ligneId(e.getLigne().getId())
                 .nomVille(e.getNomVille())
-                .latitude(e.getLatitude()).longitude(e.getLongitude())
-                .ordre(e.getOrdre()).dureeDepuisDebut(e.getDureeDepuisDebut())
+                .latitude(e.getLatitude())
+                .longitude(e.getLongitude())
+                .ordre(e.getOrdre())
                 .build();
     }
 
     private HoraireInterurbainDto mapHoraire(HoraireInterurbain h) {
         return HoraireInterurbainDto.builder()
-                .id(h.getId()).ligneId(h.getLigne().getId())
+                .id(h.getId())
+                .ligneId(h.getLigne().getId())
                 .heureDepart(h.getHeureDepart())
                 .heureArrivee(h.getHeureArrivee())
-                .jours(h.getJours()).prix(h.getPrix())
+                .jours(h.getJours())
+                .prix(h.getPrix())
                 .actif(h.getActif())
                 .build();
     }

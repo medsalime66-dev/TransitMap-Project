@@ -1,77 +1,106 @@
 package com.transitmap.controller.voyageur;
 
+import com.transitmap.dto.LigneInterurbaineDto;
 import com.transitmap.dto.ReservationDto;
-import com.transitmap.repository.ArretRepository;
-import com.transitmap.repository.TrajetRepository;
+import com.transitmap.service.InterurbainService;
 import com.transitmap.service.voyageur.ReservationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.security.Principal;
+import java.time.LocalDate;
+import java.util.Map;
 
-/**
- * Contrôleur pour la gestion des réservations du voyageur.
- */
 @Controller
-@RequestMapping("/voyageur/reservations")
+@RequestMapping("/voyageur")
 @RequiredArgsConstructor
 public class VoyageurReservationController {
 
     private final ReservationService reservationService;
-    private final TrajetRepository trajetRepository;
-    private final ArretRepository arretRepository;
+    private final InterurbainService interurbainService;
 
-    /** Liste toutes les réservations du voyageur connecté */
-    @GetMapping
-    public String mesReservations(Model model, Principal principal) {
+    // ---- 1. Page de réservation (choix arrêts + horaire + date) ----
+    @GetMapping("/interurbain/{ligneId}/reserver")
+    public String pageReservation(@PathVariable Long ligneId, Model model) {
+        LigneInterurbaineDto ligne = interurbainService.findLigneById(ligneId);
+        model.addAttribute("ligne", ligne);
+        model.addAttribute("aujourdhui", LocalDate.now());
+        return "voyageur/reserver";
+    }
+
+    // ---- 2. Aperçu du prix (AJAX / JSON) ----
+    @GetMapping("/interurbain/{ligneId}/prix")
+    @ResponseBody
+    public Map<String, Object> apercuPrix(
+            @PathVariable Long ligneId,
+            @RequestParam Long arretDepartId,
+            @RequestParam Long arretArriveeId) {
+
+        Double prix = reservationService.calculerPrix(
+                ligneId, arretDepartId, arretArriveeId);
+        return Map.of(
+                "prix", prix != null ? prix : 0.0,
+                "disponible", prix != null);
+    }
+
+    // ---- 3. Création de la réservation -> paiement ----
+    @PostMapping("/interurbain/{ligneId}/reserver")
+    public String creerReservation(
+            @PathVariable Long ligneId,
+            @RequestParam Long arretDepartId,
+            @RequestParam Long arretArriveeId,
+            @RequestParam Long horaireId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTrajet,
+            Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+
+        ReservationDto dto = ReservationDto.builder()
+                .ligneId(ligneId)
+                .arretDepartId(arretDepartId)
+                .arretArriveeId(arretArriveeId)
+                .horaireId(horaireId)
+                .dateTrajet(dateTrajet)
+                .build();
+
+        try {
+            ReservationDto creee = reservationService.creerReservation(
+                    dto, authentication.getName());
+            return "redirect:/voyageur/paiement/" + creee.getId();
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("erreur", ex.getMessage());
+            return "redirect:/voyageur/interurbain/" + ligneId + "/reserver";
+        }
+    }
+
+    // ---- 4. Liste de mes réservations ----
+    @GetMapping("/reservations")
+    public String mesReservations(Authentication authentication, Model model) {
         model.addAttribute("reservations",
-                reservationService.mesReservations(principal.getName()));
+                reservationService.mesReservations(authentication.getName()));
         return "voyageur/mes-reservations";
     }
 
-    /** Formulaire de réservation pour un trajet donné */
-    @GetMapping("/creer/{trajetId}")
-    public String formulaireReservation(
-            @PathVariable Long trajetId, Model model) {
-        var trajet = trajetRepository.findById(trajetId)
-                .orElseThrow();
-        var arrets = arretRepository.findByLigneIdOrderByOrdreAsc(
-                trajet.getLigne().getId());
-        model.addAttribute("trajet", trajet);
-        model.addAttribute("arrets", arrets);
-        model.addAttribute("reservation", new ReservationDto());
-        return "voyageur/creer-reservation";
-    }
-
-    /** Traite la soumission du formulaire de réservation */
-    @PostMapping("/creer")
-    public String creer(
-            @ModelAttribute ReservationDto dto,
-            Principal principal) {
-        var reservation = reservationService
-                .creerReservation(dto, principal.getName());
-        return "redirect:/voyageur/paiement/" + reservation.getId();
-    }
-
-    /** Affiche le détail d'une réservation avec QR code */
-    @GetMapping("/{id}")
-    public String detail(
-            @PathVariable Long id,
-            Model model,
-            Principal principal) {
+    // ---- 5. Détail d'une réservation ----
+    @GetMapping("/reservations/{id}")
+    public String detail(@PathVariable Long id,
+                         Authentication authentication,
+                         Model model) {
         model.addAttribute("reservation",
-                reservationService.trouverParId(id, principal.getName()));
+                reservationService.trouverParId(id, authentication.getName()));
         return "voyageur/reservation-detail";
     }
 
-    /** Annule une réservation en attente */
-    @PostMapping("/annuler/{id}")
-    public String annuler(
-            @PathVariable Long id,
-            Principal principal) {
-        reservationService.annuler(id, principal.getName());
+    // ---- 6. Annuler une réservation ----
+    @PostMapping("/reservations/annuler/{id}")
+    public String annuler(@PathVariable Long id,
+                          Authentication authentication,
+                          RedirectAttributes redirectAttributes) {
+        reservationService.annuler(id, authentication.getName());
+        redirectAttributes.addFlashAttribute("message", "Réservation annulée.");
         return "redirect:/voyageur/reservations";
     }
 }

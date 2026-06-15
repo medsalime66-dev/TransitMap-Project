@@ -36,25 +36,6 @@
         </a>
 
         <div class="sidebar-divider"></div>
-        <div class="sidebar-section-label">Transport urbain</div>
-        <a th:href="@{/lignes}" class="sidebar-link">
-            <span class="sidebar-icon">🛣</span>
-            <span class="sidebar-text">Lignes</span>
-        </a>
-        <a th:href="@{/arrets}" class="sidebar-link">
-            <span class="sidebar-icon">📍</span>
-            <span class="sidebar-text">Arrêts</span>
-        </a>
-        <a th:href="@{/vehicules}" class="sidebar-link">
-            <span class="sidebar-icon">🚌</span>
-            <span class="sidebar-text">Véhicules</span>
-        </a>
-        <a th:href="@{/trajets}" class="sidebar-link">
-            <span class="sidebar-icon">🕐</span>
-            <span class="sidebar-text">Trajets</span>
-        </a>
-
-        <div class="sidebar-divider"></div>
         <div class="sidebar-section-label">Surveillance</div>
         <a th:href="@{/admin/surveillance/reservations}"
            class="sidebar-link">
@@ -90,6 +71,17 @@
         </a>
 
         <div class="sidebar-divider"></div>
+        <div class="sidebar-section-label">Lignes interurbaines</div>
+        <a th:href="@{/agent/interurbain}" class="sidebar-link">
+            <span class="sidebar-icon">🗺</span>
+            <span class="sidebar-text">Mes lignes</span>
+        </a>
+        <a th:href="@{/agent/interurbain/creer}" class="sidebar-link">
+            <span class="sidebar-icon">➕</span>
+            <span class="sidebar-text">Créer une ligne</span>
+        </a>
+
+        <div class="sidebar-divider"></div>
         <div class="sidebar-section-label">Chauffeurs</div>
         <a th:href="@{/agent/chauffeurs}" class="sidebar-link">
             <span class="sidebar-icon">👤</span>
@@ -109,21 +101,6 @@
         <a th:href="@{/agent/vehicules/creer}" class="sidebar-link">
             <span class="sidebar-icon">➕</span>
             <span class="sidebar-text">Ajouter véhicule</span>
-        </a>
-
-        <div class="sidebar-divider"></div>
-        <div class="sidebar-section-label">Lignes</div>
-        <a th:href="@{/lignes}" class="sidebar-link">
-            <span class="sidebar-icon">🛣</span>
-            <span class="sidebar-text">Lignes</span>
-        </a>
-        <a th:href="@{/arrets}" class="sidebar-link">
-            <span class="sidebar-icon">📍</span>
-            <span class="sidebar-text">Arrêts</span>
-        </a>
-        <a th:href="@{/trajets}" class="sidebar-link">
-            <span class="sidebar-icon">🕐</span>
-            <span class="sidebar-text">Trajets</span>
         </a>
 
         <div class="sidebar-divider"></div>

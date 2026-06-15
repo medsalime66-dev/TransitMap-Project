@@ -105,19 +105,6 @@
                         </div>
                     </div>
 
-                    <span class="section-label">Assignation (optionnel)</span>
-
-                    <div class="mb-4">
-                        <label class="form-label">Ligne assignée</label>
-                        <select th:field="*{ligneId}" class="form-select">
-                            <option value="">-- Aucune ligne --</option>
-                            <option th:each="l : ${lignes}"
-                                    th:value="${l.id}"
-                                    th:text="${l.numero + ' — ' + l.nom}">
-                            </option>
-                        </select>
-                    </div>
-
                     <button type="submit" class="btn-submit">
                         Créer le compte chauffeur
                     </button>

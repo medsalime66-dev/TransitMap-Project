@@ -62,9 +62,7 @@
                 </div>
                 <div style="text-align:right;">
                     <div style="font-size:16px;font-weight:600;" th:text="${ligne.nom}"></div>
-                    <div class="meta"
-                         th:text="${ligne.distanceKm + ' km · Prix base : ' + ligne.prixBase + ' MRU'}">
-                    </div>
+                    <div class="meta" th:text="${ligne.description}"></div>
                 </div>
             </div>
 
@@ -127,8 +125,7 @@
                             </div>
                             <div>
                                 <label class="form-label">Prix (MRU)</label>
-                                <input type="number" step="50" th:field="*{prix}" class="form-control"
-                                       th:value="${ligne.prixBase}">
+                                <input type="number" step="50" th:field="*{prix}" class="form-control">
                                 <div class="text-danger" th:errors="*{prix}"></div>
                             </div>
                             <button type="submit" class="btn-sm-add">+ Ajouter cet horaire</button>

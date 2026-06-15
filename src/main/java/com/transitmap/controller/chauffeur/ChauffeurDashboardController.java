@@ -1,5 +1,6 @@
 package com.transitmap.controller.chauffeur;
 
+import com.transitmap.dto.ChauffeurDto;
 import com.transitmap.entity.Chauffeur;
 import com.transitmap.repository.ChauffeurRepository;
 import com.transitmap.repository.UserRepository;
@@ -11,10 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
-/**
- * Contrôleur du tableau de bord du chauffeur.
- * Affiche le profil, le véhicule assigné et les réservations en attente.
- */
 @Controller
 @RequestMapping("/chauffeur")
 @RequiredArgsConstructor
@@ -24,43 +21,38 @@ public class ChauffeurDashboardController {
     private final UserRepository userRepository;
     private final ReservationService reservationService;
 
-    /** Tableau de bord principal du chauffeur */
     @GetMapping("/dashboard")
     public String dashboard(Model model, Principal principal) {
+        var user = userRepository.findByUsername(principal.getName()).orElseThrow();
 
-        var user = userRepository.findByUsername(principal.getName())
-                .orElseThrow();
-
-        Chauffeur chauffeur = chauffeurRepository
-                .findAll()
+        Chauffeur chauffeur = chauffeurRepository.findAll()
                 .stream()
-                .filter(c -> c.getUser() != null &&
-                        c.getUser().getId().equals(user.getId()))
+                .filter(c -> c.getUser() != null && c.getUser().getId().equals(user.getId()))
                 .findFirst()
                 .orElse(null);
 
-        model.addAttribute("chauffeur", chauffeur);
-        model.addAttribute("vehicule",
-                chauffeur != null ? chauffeur.getLigne() : null);
+        ChauffeurDto dto = chauffeur == null ? null : ChauffeurDto.builder()
+                .id(chauffeur.getId())
+                .nomComplet(chauffeur.getNomComplet())
+                .email(chauffeur.getEmail())
+                .telephone(chauffeur.getTelephone())
+                .numeroPermis(chauffeur.getNumeroPermis())
+                .build();
 
+        model.addAttribute("chauffeur", dto);
         return "chauffeur/dashboard";
     }
 
-    /** Page de validation des codes de réservation */
     @GetMapping("/validation")
     public String pageValidation(Model model) {
         model.addAttribute("message", null);
         return "chauffeur/validation";
     }
 
-    /** Traite la validation d'un code textuel */
     @PostMapping("/validation")
-    public String validerCode(
-            @RequestParam String codeTexte,
-            Model model) {
+    public String validerCode(@RequestParam String codeTexte, Model model) {
         try {
-            var reservation = reservationService.validerCode(
-                    codeTexte.trim().toUpperCase());
+            var reservation = reservationService.validerCode(codeTexte.trim().toUpperCase());
             model.addAttribute("succes",
                     "Réservation validée — " +
                     reservation.getArretDepartNom() +

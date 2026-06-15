@@ -156,7 +156,7 @@
                         <tr th:each="c : ${chauffeurs}">
                             <td th:text="${c.nomComplet}"></td>
                             <td th:text="${c.telephone}"></td>
-                            <td th:text="${c.ligneNom ?: '—'}"></td>
+                            <td>—</td>
                         </tr>
                     </tbody>
                 </table>

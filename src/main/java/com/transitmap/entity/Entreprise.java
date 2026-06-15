@@ -64,6 +64,6 @@ public class Entreprise {
 
     /** Types de service disponibles */
     public enum TypeService {
-        URBAIN, INTERURBAIN, LES_DEUX
+        INTERURBAIN
     }
 }

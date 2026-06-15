@@ -38,9 +38,6 @@ public class VehiculeDto {
     /** Position GPS — longitude */
     private Double longitudeActuelle;
 
-    @NotNull(message = "La ligne est obligatoire")
-    private Long ligneId;
-
     /** Chauffeur assigné (optionnel) */
     private Long chauffeurId;
 }

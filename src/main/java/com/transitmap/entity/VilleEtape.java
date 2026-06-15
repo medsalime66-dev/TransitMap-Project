@@ -31,5 +31,9 @@ public class VilleEtape {
     private Integer ordre;
 
     @Column(nullable = false)
-    private Integer dureeDepuisDebut; // بالدقائق
+    private boolean estDepart;
+
+    @Column(nullable = false)
+    private boolean estArrivee;
+
 }

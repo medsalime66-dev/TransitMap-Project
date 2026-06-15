@@ -64,14 +64,8 @@
                           th:text="${chauffeur.numeroPermis}"></span>
                 </div>
                 <div class="info-ligne">
-                    <span class="info-label">Ligne assignée</span>
-                    <span class="info-val"
-                          th:if="${chauffeur.ligneNom != null}"
-                          th:text="${chauffeur.ligneNom}"></span>
-                    <span class="info-val" style="color:#aaa;"
-                          th:unless="${chauffeur.ligneNom != null}">
-                        Aucune ligne assignée
-                    </span>
+                    <span class="info-label">Statut</span>
+                    <span class="info-val">Actif</span>
                 </div>
             </div>
         </div>

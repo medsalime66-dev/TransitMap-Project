@@ -3,6 +3,9 @@ package com.transitmap.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "lignes_interurbaines")
 @Getter @Setter
@@ -23,12 +26,16 @@ public class LigneInterurbaine {
     @Column(nullable = false, length = 100)
     private String villeArrivee;
 
-    @Column(nullable = false)
-    private Double distanceKm;
-
-    @Column(nullable = false)
-    private Double prixBase;
-
     @Column(length = 500)
     private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "createur_id")
+    private User createur;
+
+    @OneToMany(mappedBy = "ligne", cascade = CascadeType.ALL,
+               fetch = FetchType.LAZY, orphanRemoval = true)
+    @OrderBy("ordre ASC")
+    @Builder.Default
+    private List<VilleEtape> etapes = new ArrayList<>();
 }
